@@ -1,0 +1,219 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="來源檔案">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="標頭檔">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="資源檔">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="來源檔案\LSGO2013Benchmark">
+      <UniqueIdentifier>{8537fe08-f0fc-4ef9-983b-097fc44b91ac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="標頭檔\LSGO2013Benchmark">
+      <UniqueIdentifier>{1a5b916b-3a13-4bc1-8fd4-9f1d4c57dd0d}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\alg_crossover.cpp">
+      <Filter>來源檔案</Filter>
+    </ClCompile>
+    <ClCompile Include="src\alg_individual.cpp">
+      <Filter>來源檔案</Filter>
+    </ClCompile>
+    <ClCompile Include="src\alg_initialization.cpp">
+      <Filter>來源檔案</Filter>
+    </ClCompile>
+    <ClCompile Include="src\alg_log.cpp">
+      <Filter>來源檔案</Filter>
+    </ClCompile>
+    <ClCompile Include="src\alg_mL-SHADE.cpp">
+      <Filter>來源檔案</Filter>
+    </ClCompile>
+    <ClCompile Include="src\alg_mutation.cpp">
+      <Filter>來源檔案</Filter>
+    </ClCompile>
+    <ClCompile Include="src\experiment.cpp">
+      <Filter>來源檔案</Filter>
+    </ClCompile>
+    <ClCompile Include="src\main.cpp">
+      <Filter>來源檔案</Filter>
+    </ClCompile>
+    <ClCompile Include="src\problem.cpp">
+      <Filter>來源檔案</Filter>
+    </ClCompile>
+    <ClCompile Include="src\problem_set.cpp">
+      <Filter>來源檔案</Filter>
+    </ClCompile>
+    <ClCompile Include="src\self_implement_functions.cpp">
+      <Filter>來源檔案</Filter>
+    </ClCompile>
+    <ClCompile Include="src\2013LSGOBenchmarks\2013Benchmarks.cpp">
+      <Filter>來源檔案\LSGO2013Benchmark</Filter>
+    </ClCompile>
+    <ClCompile Include="src\2013LSGOBenchmarks\Benchmarks.cpp">
+      <Filter>來源檔案\LSGO2013Benchmark</Filter>
+    </ClCompile>
+    <ClCompile Include="src\2013LSGOBenchmarks\F1.cpp">
+      <Filter>來源檔案\LSGO2013Benchmark</Filter>
+    </ClCompile>
+    <ClCompile Include="src\2013LSGOBenchmarks\F2.cpp">
+      <Filter>來源檔案\LSGO2013Benchmark</Filter>
+    </ClCompile>
+    <ClCompile Include="src\2013LSGOBenchmarks\F3.cpp">
+      <Filter>來源檔案\LSGO2013Benchmark</Filter>
+    </ClCompile>
+    <ClCompile Include="src\2013LSGOBenchmarks\F4.cpp">
+      <Filter>來源檔案\LSGO2013Benchmark</Filter>
+    </ClCompile>
+    <ClCompile Include="src\2013LSGOBenchmarks\F5.cpp">
+      <Filter>來源檔案\LSGO2013Benchmark</Filter>
+    </ClCompile>
+    <ClCompile Include="src\2013LSGOBenchmarks\F6.cpp">
+      <Filter>來源檔案\LSGO2013Benchmark</Filter>
+    </ClCompile>
+    <ClCompile Include="src\2013LSGOBenchmarks\F7.cpp">
+      <Filter>來源檔案\LSGO2013Benchmark</Filter>
+    </ClCompile>
+    <ClCompile Include="src\2013LSGOBenchmarks\F8.cpp">
+      <Filter>來源檔案\LSGO2013Benchmark</Filter>
+    </ClCompile>
+    <ClCompile Include="src\2013LSGOBenchmarks\F9.cpp">
+      <Filter>來源檔案\LSGO2013Benchmark</Filter>
+    </ClCompile>
+    <ClCompile Include="src\2013LSGOBenchmarks\F10.cpp">
+      <Filter>來源檔案\LSGO2013Benchmark</Filter>
+    </ClCompile>
+    <ClCompile Include="src\2013LSGOBenchmarks\F11.cpp">
+      <Filter>來源檔案\LSGO2013Benchmark</Filter>
+    </ClCompile>
+    <ClCompile Include="src\2013LSGOBenchmarks\F12.cpp">
+      <Filter>來源檔案\LSGO2013Benchmark</Filter>
+    </ClCompile>
+    <ClCompile Include="src\2013LSGOBenchmarks\F13.cpp">
+      <Filter>來源檔案\LSGO2013Benchmark</Filter>
+    </ClCompile>
+    <ClCompile Include="src\2013LSGOBenchmarks\F14.cpp">
+      <Filter>來源檔案\LSGO2013Benchmark</Filter>
+    </ClCompile>
+    <ClCompile Include="src\2013LSGOBenchmarks\F15.cpp">
+      <Filter>來源檔案\LSGO2013Benchmark</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CC_group.cpp">
+      <Filter>來源檔案</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CC.cpp">
+      <Filter>來源檔案</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CC_decomposer.cpp">
+      <Filter>來源檔案</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\alg_base.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="src\alg_crossover.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="src\alg_individual.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="src\alg_initialization.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="src\alg_log.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="src\alg_math.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="src\alg_mL-SHADE.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="src\alg_mutation.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="src\alg_population.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="src\experiment.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="src\problem.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="src\problem_set.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="src\self_implement_functions.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="src\2013LSGOBenchmarks\2013Benchmarks.h">
+      <Filter>標頭檔\LSGO2013Benchmark</Filter>
+    </ClInclude>
+    <ClInclude Include="src\2013LSGOBenchmarks\Benchmarks.h">
+      <Filter>標頭檔\LSGO2013Benchmark</Filter>
+    </ClInclude>
+    <ClInclude Include="src\2013LSGOBenchmarks\F1.h">
+      <Filter>標頭檔\LSGO2013Benchmark</Filter>
+    </ClInclude>
+    <ClInclude Include="src\2013LSGOBenchmarks\F2.h">
+      <Filter>標頭檔\LSGO2013Benchmark</Filter>
+    </ClInclude>
+    <ClInclude Include="src\2013LSGOBenchmarks\F3.h">
+      <Filter>標頭檔\LSGO2013Benchmark</Filter>
+    </ClInclude>
+    <ClInclude Include="src\2013LSGOBenchmarks\F4.h">
+      <Filter>標頭檔\LSGO2013Benchmark</Filter>
+    </ClInclude>
+    <ClInclude Include="src\2013LSGOBenchmarks\F5.h">
+      <Filter>標頭檔\LSGO2013Benchmark</Filter>
+    </ClInclude>
+    <ClInclude Include="src\2013LSGOBenchmarks\F6.h">
+      <Filter>標頭檔\LSGO2013Benchmark</Filter>
+    </ClInclude>
+    <ClInclude Include="src\2013LSGOBenchmarks\F7.h">
+      <Filter>標頭檔\LSGO2013Benchmark</Filter>
+    </ClInclude>
+    <ClInclude Include="src\2013LSGOBenchmarks\F8.h">
+      <Filter>標頭檔\LSGO2013Benchmark</Filter>
+    </ClInclude>
+    <ClInclude Include="src\2013LSGOBenchmarks\F9.h">
+      <Filter>標頭檔\LSGO2013Benchmark</Filter>
+    </ClInclude>
+    <ClInclude Include="src\2013LSGOBenchmarks\F10.h">
+      <Filter>標頭檔\LSGO2013Benchmark</Filter>
+    </ClInclude>
+    <ClInclude Include="src\2013LSGOBenchmarks\F11.h">
+      <Filter>標頭檔\LSGO2013Benchmark</Filter>
+    </ClInclude>
+    <ClInclude Include="src\2013LSGOBenchmarks\F12.h">
+      <Filter>標頭檔\LSGO2013Benchmark</Filter>
+    </ClInclude>
+    <ClInclude Include="src\2013LSGOBenchmarks\F13.h">
+      <Filter>標頭檔\LSGO2013Benchmark</Filter>
+    </ClInclude>
+    <ClInclude Include="src\2013LSGOBenchmarks\F14.h">
+      <Filter>標頭檔\LSGO2013Benchmark</Filter>
+    </ClInclude>
+    <ClInclude Include="src\2013LSGOBenchmarks\F15.h">
+      <Filter>標頭檔\LSGO2013Benchmark</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CC_group.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CC.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CC_decomposer.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
