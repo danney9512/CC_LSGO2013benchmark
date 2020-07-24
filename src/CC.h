@@ -9,7 +9,7 @@ class CC_alg
 public:
 	explicit CC_alg();
 
-	void Setup();
+	void Setup(GroupsResult& all_groups, std::ifstream& optimizer_ifile);
 	Individual& Solve(const CProblem& prob);
 
 private:

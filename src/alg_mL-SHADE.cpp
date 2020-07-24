@@ -29,7 +29,7 @@ void mL_SHADE::Setup(std::ifstream &ifile)
 	ifile >> dummy >> dummy >> name_;
 	ifile >> dummy >> dummy >> rNinit_;
 	ifile >> dummy >> dummy >> nmin_;
-	ifile >> dummy >> dummy >> max_nfe_;
+	//ifile >> dummy >> dummy >> max_nfe_;	// 已被拿出去
 	ifile >> dummy >> dummy >> finit_;
 	ifile >> dummy >> dummy >> crinit_;
 	ifile >> dummy >> dummy >> rarc_;

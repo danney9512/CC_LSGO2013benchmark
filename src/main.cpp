@@ -18,6 +18,7 @@
 #include "problem_set.h"
 #include "experiment.h"
 
+#include "CC.h"
 
 #include "alg_base.h"
 #include "alg_log.h"
@@ -53,7 +54,7 @@ int main()
 	constexpr int NumOfRuns = 1;
 
 	//BaseEA* ea = nullptr;
-	string algo_name, grouping_name, algo_ini_str;
+	string algo_name, grouping_name, optimizer_name, algo_ini_str;
 	int problem_id = 0;
 
 
@@ -73,7 +74,7 @@ int main()
 		if (algo_name == "CC")
 		{
 			// Grouping 
-			if (grouping_name == "default")
+			if (grouping_name == "grouped")
 			{
 				// 去讀分群好的檔案不用再分群了
 				// 讀檔路徑設定
@@ -97,10 +98,11 @@ int main()
 		// Load optimizer 參數
 		// Loading Algorithm parameter's setting
 		// 載入演算法參數
-		algo_ini_str  = "experiments\\" + algo_name + "\\exp_CEC2013benchmark_" + IntToStr(problem_id, 2) + ".ini";
-		ifstream exp_algo_para_ini(algo_ini_str);
+		
+		algo_ini_str  = "experiments\\optimizer\\" + optimizer_name + "\\exp_CEC2013benchmark_" + IntToStr(problem_id, 2) + ".ini";
+		ifstream optimizer_para_ini(algo_ini_str);
 
-		if (!exp_algo_para_ini)
+		if (!optimizer_para_ini)
 		{
 			cout << "Error msg: Can't load the CC optimizer's parameters, check the .ini file's path." << endl;
 		}
@@ -115,7 +117,7 @@ int main()
 			// Algorithm parameter's setting
 			//ea -> Setup(exp_algo_para_ini);
 
-			string result_filename = algo_name + "_F" + IntToStr(problem_id, 2) + "_D" + IntToStr(prob_set[problem_id - 1].dim(), 2) + ".csv";
+			string result_filename = algo_name + optimizer_name + "-" + grouping_name + "_F" + IntToStr(problem_id, 2) + "_D" + IntToStr(prob_set[problem_id - 1].dim(), 2) + ".csv";
 			Result result(problem_id, NumOfRuns, result_filename);
 
 			START = clock();
@@ -140,7 +142,7 @@ int main()
 				
 					// CC result for each run
 					result[run] = solutions.fitness();
-					cout << "Run " << run << ", best fitness: " << solutions[0].fitness() << endl;
+					cout << "Run " << run << ", best fitness: " << solutions.fitness() << endl;
 				}
 			}
 			END = clock();
