@@ -6,6 +6,7 @@
 #include "alg_math.h"
 #include "problem.h"
 #include "alg_log.h"
+#include "CC_group.h"
 
 #include "2013LSGOBenchmarks/2013Benchmarks.h"
 
@@ -69,17 +70,17 @@ void mL_SHADE::MemorySystem::update_memory(const std::vector<Memory> &success_pa
 	}
 }
 
-void mL_SHADE::Solve(Population *solutions, const CProblem &prob)
+void mL_SHADE::Solve_forCC(Individual& context_vec, const Group& group, const vector<CC_SubComponent>& population, const CProblem &prob, const int pop_size, unsigned long long int& nfe, const unsigned long long int max_nFE)
 {
 	// Set log system and target problem 
-	Log log(name() + '_' + to_string(prob.id()) + "_D" + to_string(prob.dim()) + "_" + prob.name(), max_nfe_, prob.dim(), prob.global_optimum());
+	//Log log(name() + '_' + to_string(prob.id()) + "_D" + to_string(prob.dim()) + "_" + prob.name(), max_nfe_, prob.dim(), prob.global_optimum());
 	Individual::SetTargetProblem(prob);
 	
 	// Set parameter and random generator
 	//const size_t NPinit = (size_t) round(prob.dim() * rNinit_), Gene_Len = prob.dim(), H = h_, Nmin = nmin_;
-	const size_t NPinit = (size_t)250, Gene_Len = prob.dim(), H = h_, Nmin = nmin_;
-	const unsigned long long int Max_NFE = max_nfe_;
-	unsigned long long int nfe = 0;
+	const size_t NPinit = (size_t)pop_size, Gene_Len = prob.dim(), H = h_, Nmin = nmin_;
+	const unsigned long long int Max_NFE = max_nFE;
+	//unsigned long long int nfe = 0;
 	size_t NP = NPinit, A = (size_t) (NPinit*rarc_);
 	const double pbest = p_, ub = prob.upper_bound(), lb = prob.lower_bound(), scalemax = scalemax_;
 	std::default_random_engine generator;
@@ -90,7 +91,18 @@ void mL_SHADE::Solve(Population *solutions, const CProblem &prob)
 
 	// Initialize and evaluate population  
 	Population pop(NP), archive_pop, children(NP);
-	RandomInitialization(&pop, prob);
+	//RandomInitialization(&pop, prob);
+	for (int i = 0; i < NP; i += 1)
+	{
+		pop[i] = context_vec;
+	}
+	for (int i = 0; i < population.size(); i += 1)
+	{
+		for (int j = 0; j < population[i].size(); j += 1)
+		{
+			pop[i].gene()[group[j]] = population[i][j];
+		}
+	}
 	for (size_t i = 0; i < NP; ++i)
 	{
 		pop[i].fitness() = fp->compute(pop[i].gene());
@@ -170,8 +182,8 @@ void mL_SHADE::Solve(Population *solutions, const CProblem &prob)
 				stop_flag = true;
 				stop_idx = i;
 
-				log.store_errorvalue(&pop);
-				log.store_bestfitness(&pop, (int)nfe);
+				//log.store_errorvalue(&pop);
+				//log.store_bestfitness(&pop, (int)nfe);
 				break;
 			}
 		}
@@ -225,6 +237,7 @@ void mL_SHADE::Solve(Population *solutions, const CProblem &prob)
 
 
 		// Log data output
+		/*
 		if (log.LSGO2013_record_point((int)nfe))
 		{
 			log.store_errorvalue(&pop);
@@ -232,7 +245,7 @@ void mL_SHADE::Solve(Population *solutions, const CProblem &prob)
 		if (cycle_cnt % bestFitness_log_cycle == 0 || nfe >= Max_NFE)
 		{
 			log.store_bestfitness(&pop, (int)nfe);
-		}
+		}*/
 
 		//log.store(&pop, memory_sys, sample_parameter, success_parameter, (int)nfe);
 		//log.store_pop(&pop, &archive_pop, (int)nfe);
@@ -242,9 +255,15 @@ void mL_SHADE::Solve(Population *solutions, const CProblem &prob)
 		//if (CEC2019_100Digit_Score(&pop[0], prob.global_optimum()) >= 10) break;
 	}
 	pop.sort();
-	std::cout << "MNSC : " << max_no_success_cnt << " / LNSC : " << no_success_cnt << " / TNSC : " << total_no_success <<" ";
-	*solutions = pop;
-	log.close();
+	
+	//update context vector
+	for (int i = 0; i < population[i].size(); i += 1)
+	{
+		context_vec.gene()[group[i]] = pop[0].gene()[group[i]];
+	}
+	//std::cout << "MNSC : " << max_no_success_cnt << " / LNSC : " << no_success_cnt << " / TNSC : " << total_no_success <<" ";
+	//*solutions = pop;
+	//log.close();
 }
 
 Individual::GeneVec mL_SHADE::CurtopBest_DonorVec(int target_idx, double p, double f, const Population& pop, const Population& archive)

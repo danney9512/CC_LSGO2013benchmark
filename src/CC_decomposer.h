@@ -17,7 +17,7 @@ public:
 	explicit Decomposer(std::string& optimizer_name, std::ifstream& optimizer_ifile, Group& g, const int pop_size);
 
 
-	Individual& Optimize(const CProblem& prob, Individual& context_vec, unsigned long long int& nfe, const std::string& mutation_opt);
+	Individual& Optimize(const CProblem& prob, Individual& context_vec, unsigned long long int& nfe, const unsigned long long int& MAX_nFE, const std::string& mutation_opt);
 	void PopulationInitialization(const CProblem& prob);
 
 	void setMutationOperator(std::string opt) { mutation_opt_ = opt; }

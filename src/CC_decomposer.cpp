@@ -9,6 +9,9 @@ Decomposer::Decomposer(std::string& optimizer_name, std::ifstream& optimizer_ifi
 	group_ = g;
 	pop_size_ = pop_size;
 
+	//population_ 初始化為 0
+	population_ = std::vector<CC_SubComponent>(pop_size_, CC_SubComponent(g.size(), 0.0));
+
 	if (optimizer_name == "mL-SHADE")
 	{
 		optimizer_ = new mL_SHADE();
@@ -38,12 +41,13 @@ void Decomposer::PopulationInitialization(const CProblem& prob)
 	}
 }
 
-Individual& Decomposer::Optimize(const CProblem& prob, Individual & context_vec, unsigned long long int& nfe, const std::string& mutation_opt)
+Individual& Decomposer::Optimize(const CProblem& prob, Individual& context_vec, unsigned long long int& nfe, const unsigned long long int& MAX_nFE, const std::string& mutation_opt)
 {
 	// TODO: 真正 mL-SHADE 在執行的地方
-	
+	optimizer_->Solve_forCC(context_vec, group_, population_, prob, pop_size_, nfe, MAX_nFE);
 	// TODO: 預留 多個 不同的 Mutation operator
 
 
+	return context_vec;
 }
 

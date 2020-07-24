@@ -9,13 +9,18 @@
 #include <fstream>
 #include <vector>
 
+class Group;
+
 class mL_SHADE : public BaseEA
 {
 public:
 	mL_SHADE() : BaseEA("mL-SHADE") {}
 
 	virtual void Setup(std::ifstream &ifile);
-	virtual void Solve(Population *solutions, const CProblem &prob);
+	virtual void Solve(Population* solutions, const CProblem& prob) {};
+
+	typedef std::vector<double> CC_SubComponent;
+	void Solve_forCC(Individual& context_vec, const Group& group, const std::vector<CC_SubComponent>& population, const CProblem& prob, const int pop_size, unsigned long long int& nfe, const unsigned long long int max_nFE);
 
 	class Memory
 	{
