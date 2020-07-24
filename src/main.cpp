@@ -54,7 +54,7 @@ int main()
 	constexpr int NumOfRuns = 1;
 
 	//BaseEA* ea = nullptr;
-	string algo_name, grouping_name, optimizer_name, algo_ini_str;
+	string algo_name, algo_ini_str, grouping_name, optimizer_name, optimizer_ini_str;
 	int problem_id = 0;
 
 
@@ -98,13 +98,19 @@ int main()
 		// Load optimizer 參數
 		// Loading Algorithm parameter's setting
 		// 載入演算法參數
-		
-		algo_ini_str  = "experiments\\optimizer\\" + optimizer_name + "\\exp_CEC2013benchmark_" + IntToStr(problem_id, 2) + ".ini";
-		ifstream optimizer_para_ini(algo_ini_str);
 
-		if (!optimizer_para_ini)
+		algo_ini_str = "experiments\\" + algo_name + "_parameter.ini";
+		ifstream algo_para_ini(algo_ini_str);
+		
+		optimizer_ini_str  = "experiments\\optimizer\\" + optimizer_name + "\\exp_CEC2013benchmark_" + IntToStr(problem_id, 2) + ".ini";
+		ifstream optimizer_para_ini(optimizer_ini_str);
+
+		if (!algo_para_ini || !optimizer_para_ini)
 		{
-			cout << "Error msg: Can't load the CC optimizer's parameters, check the .ini file's path." << endl;
+			if (!algo_para_ini)
+				cout << "Error msg: Can't load the CC parameters, check the .ini file's path." << endl;
+			if (!optimizer_para_ini)
+				cout << "Error msg: Can't load the CC optimizer's parameters, check the .ini file's path." << endl;
 		}
 		else
 		{

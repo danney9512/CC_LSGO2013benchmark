@@ -9,6 +9,7 @@
 class Group
 {
 public:
+	Group(){}
 	explicit Group(const int index);
 	explicit Group(std::vector<int>& index_arr);
 

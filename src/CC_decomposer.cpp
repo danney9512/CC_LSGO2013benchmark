@@ -1,6 +1,26 @@
 #include "CC_decomposer.h"
 #include "problem.h"
 #include "alg_math.h"
+#include "alg_L-SHADE.h"
+#include "alg_mL-SHADE.h"
+
+Decomposer::Decomposer(std::string& optimizer_name, std::ifstream& optimizer_ifile, Group& g, const int pop_size)
+{
+	group_ = g;
+	pop_size_ = pop_size;
+
+	if (optimizer_name == "mL-SHADE")
+	{
+		optimizer_ = new mL_SHADE();
+
+		if (!optimizer_ifile)
+			return;
+		else
+			optimizer_->Setup(optimizer_ifile);
+	}
+
+	mutation_opt_ = "";
+}
 
 void SubComponentInitialization(std::vector<double>& sub_component, const CProblem& prob)
 {
@@ -16,5 +36,14 @@ void Decomposer::PopulationInitialization(const CProblem& prob)
 	{
 		SubComponentInitialization(population_[i], prob);
 	}
+}
+
+Individual& Decomposer::Optimize(const CProblem& prob, Individual & context_vec, unsigned long long int& nfe, const std::string& mutation_opt)
+{
+	// TODO: 真正 mL-SHADE 在執行的地方
+	
+	// TODO: 預留 多個 不同的 Mutation operator
+
+
 }
 
