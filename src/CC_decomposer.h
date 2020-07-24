@@ -3,7 +3,7 @@
 
 #include <vector>
 #include "CC_group.h"
-
+#include "alg_individual.h"
 #include "alg_base.h"
 
 
@@ -16,6 +16,8 @@ public:
 
 	Individual& Optimize(const CProblem& prob, unsigned long long int& nfe, const std::string& mutation_opt);
 
+	//void SubComponentInitialization(CC_SubComponent& sub_component, const CProblem& prob);
+	void PopulationInitialization(const CProblem& prob);
 
 	~Decomposer() {}
 private:
@@ -26,7 +28,7 @@ private:
 	
 	BaseEA *optimizer_;
 
-	std::string mutation_opt;
+	std::string mutation_opt_;
 };
 
 #endif // ! CC_DECOMPOSER__
