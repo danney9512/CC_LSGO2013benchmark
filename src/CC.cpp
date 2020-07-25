@@ -1,5 +1,6 @@
 #include "CC.h"
 #include "2013LSGOBenchmarks/2013Benchmarks.h"
+#include "alg_math.h"
 
 CC_alg::CC_alg(const unsigned long long int used_nfe, unsigned long long int max_nFE)
 {
@@ -50,13 +51,6 @@ Individual& CC_alg::Solve(const CProblem& prob)
 
 	std::string MutationOperator = "Cur-to-pbest";
 
-	// Initialize Context vector
-	context_vector_ = Individual(prob.dim(), 0.0);
-
-	// TODO: randomly choose subcomponent gene from decomposers into context vector
-	// TODO: update the fitness of context vector
-
-
 	// Create Benchmark function
 	Benchmarks* fp = generateFuncObj(prob.id(), prob.lower_bound(), prob.upper_bound(), prob.dim());
 	fp->nextRun();
@@ -66,9 +60,24 @@ Individual& CC_alg::Solve(const CProblem& prob)
 	for (int i = 0; i < decomposers_.size(); ++i)
 	{
 		decomposers_[i].PopulationInitialization(prob);
-
-		// TODO: Initialize the mL-SHADE memory system
 	}
+
+	// Initialize Context vector
+	context_vector_ = Individual(prob.dim(), 0.0);
+
+	// TODO: randomly choose subcomponent gene from decomposers into context vector
+	for (int i = 0; i < decomposers_.size(); i += 1)
+	{
+		int rand_pop_num = alg_math::randInt(0, pop_size_ - 1);
+		for (int j = 0; j < decomposers_[i].group().size(); j += 1)
+		{
+			context_vector_.gene()[decomposers_[i].group()[j]] = decomposers_[i].population()[rand_pop_num][j];
+		}
+	}
+	// TODO: update the fitness of context vector
+	// ?????
+
+
 
 	// CC evaluation
 	size_t cycle_cnt = 0;
@@ -78,15 +87,11 @@ Individual& CC_alg::Solve(const CProblem& prob)
 
 		for (int i = 0; i < decomposers_.size(); ++i)
 		{
-			
-			for (int j = 0; j < optimizer_LearningPeriod_; ++j)
-			{
-				decomposers_[i].setMutationOperator(MutationOperator);
+			decomposers_[i].setMutationOperator(MutationOperator);
 
-				// TODO: Optimize each SubComponents
+			// TODO: Optimize each SubComponents
+			decomposers_[i].Optimize(optimizer_LearningPeriod_, prob, context_vector_, nFE_now, MAX_nFE);
 
-
-			}
 			// TODO: Update context vector gene and fitness
 		}
 	}

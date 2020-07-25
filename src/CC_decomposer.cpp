@@ -41,10 +41,10 @@ void Decomposer::PopulationInitialization(const CProblem& prob)
 	}
 }
 
-Individual& Decomposer::Optimize(const CProblem& prob, Individual& context_vec, unsigned long long int& nfe, const unsigned long long int& MAX_nFE, const std::string& mutation_opt)
+Individual& Decomposer::Optimize(const int iteration,const CProblem& prob, Individual& context_vec, unsigned long long int& nfe, const unsigned long long int& MAX_nFE)
 {
 	// TODO: 真正 mL-SHADE 在執行的地方
-	optimizer_->Solve_forCC(context_vec, group_, population_, prob, pop_size_, nfe, MAX_nFE);
+	optimizer_->Solve(context_vec, group_, population_, prob, iteration, pop_size_, nfe, MAX_nFE);
 	// TODO: 預留 多個 不同的 Mutation operator
 
 

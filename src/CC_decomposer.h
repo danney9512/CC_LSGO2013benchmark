@@ -17,10 +17,13 @@ public:
 	explicit Decomposer(std::string& optimizer_name, std::ifstream& optimizer_ifile, Group& g, const int pop_size);
 
 
-	Individual& Optimize(const CProblem& prob, Individual& context_vec, unsigned long long int& nfe, const unsigned long long int& MAX_nFE, const std::string& mutation_opt);
+	Individual& Optimize(const int iteration, const CProblem& prob, Individual& context_vec, unsigned long long int& nfe, const unsigned long long int& MAX_nFE);
 	void PopulationInitialization(const CProblem& prob);
 
 	void setMutationOperator(std::string opt) { mutation_opt_ = opt; }
+
+	const Group& group() const { return group_; }
+	const std::vector<CC_SubComponent>& population() const { return population_; }
 
 	~Decomposer() { delete optimizer_; }
 private:

@@ -70,7 +70,7 @@ void mL_SHADE::MemorySystem::update_memory(const std::vector<Memory> &success_pa
 	}
 }
 
-void mL_SHADE::Solve_forCC(Individual& context_vec, const Group& group, const vector<CC_SubComponent>& population, const CProblem &prob, const int pop_size, unsigned long long int& nfe, const unsigned long long int max_nFE)
+void mL_SHADE::Solve(Individual& context_vec, const Group& group, const vector<vector<double>>& population, const CProblem &prob, const int iteration, const int pop_size, unsigned long long int& nfe, const unsigned long long int max_nFE)
 {
 	// Set log system and target problem 
 	//Log log(name() + '_' + to_string(prob.id()) + "_D" + to_string(prob.dim()) + "_" + prob.name(), max_nfe_, prob.dim(), prob.global_optimum());
@@ -80,6 +80,7 @@ void mL_SHADE::Solve_forCC(Individual& context_vec, const Group& group, const ve
 	//const size_t NPinit = (size_t) round(prob.dim() * rNinit_), Gene_Len = prob.dim(), H = h_, Nmin = nmin_;
 	const size_t NPinit = (size_t)pop_size, Gene_Len = prob.dim(), H = h_, Nmin = nmin_;
 	const unsigned long long int Max_NFE = max_nFE;
+	int cur_iteration = 0;
 	//unsigned long long int nfe = 0;
 	size_t NP = NPinit, A = (size_t) (NPinit*rarc_);
 	const double pbest = p_, ub = prob.upper_bound(), lb = prob.lower_bound(), scalemax = scalemax_;
@@ -123,11 +124,12 @@ void mL_SHADE::Solve_forCC(Individual& context_vec, const Group& group, const ve
 	//log.store(&pop, memory_sys, sample_parameter, success_parameter, (int)nfe);
 
 	constexpr int bestFitness_log_cycle = 20;
-	size_t cycle_cnt = 0;
+	//size_t cycle_cnt = 0;
 	
-	while (nfe < Max_NFE)
+	while (cur_iteration < iteration && nfe < Max_NFE)
 	{
-		cycle_cnt += 1;
+		//cycle_cnt += 1;
+		cur_iteration += 1;
 
 		sample_parameter.clear();
 		
@@ -257,10 +259,8 @@ void mL_SHADE::Solve_forCC(Individual& context_vec, const Group& group, const ve
 	pop.sort();
 	
 	//update context vector
-	for (int i = 0; i < population[i].size(); i += 1)
-	{
-		context_vec.gene()[group[i]] = pop[0].gene()[group[i]];
-	}
+	context_vec = pop[0];
+
 	//std::cout << "MNSC : " << max_no_success_cnt << " / LNSC : " << no_success_cnt << " / TNSC : " << total_no_success <<" ";
 	//*solutions = pop;
 	//log.close();
