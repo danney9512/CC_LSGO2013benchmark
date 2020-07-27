@@ -7,13 +7,14 @@
 class Experiment
 {
 public:
-	explicit Experiment(std::string algo_str = "", std::string grouping = "", std::string optimizer="", std::string CB = "", size_t pid = 0, unsigned long long int nFE = 0);
+	explicit Experiment(std::string algo_str = "", std::string grouping = "", bool grouped=false, std::string optimizer="", std::string CB = "", size_t pid = 0, unsigned long long int nFE = 0);
 	const std::string& algo_name() const { return algo_name_; }
 	const std::string& grouping() const { return grouping_; }
 	const std::string& optimizer() const { return optimizer_; }
 	const std::string& CB() const { return contributationBase; }
 	const size_t& problem_id() const { return problem_id_; }
 	const unsigned long long int max_nFE()const { return max_nFE_; }
+	const bool grouped() const { return grouped_; }
 
 private:
 	std::string algo_name_;
@@ -22,6 +23,7 @@ private:
 	std::string contributationBase;
 	size_t problem_id_;
 	unsigned long long int max_nFE_;
+	bool grouped_;
 };
 
 class ExperimentSet
