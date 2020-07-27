@@ -24,9 +24,6 @@ public:
 		if (g.size() != x_index_.size())
 			return false;
 
-		sort(g.vec().begin(), g.vec().end());
-		sort(x_index_.begin(), x_index_.end());
-
 		for (size_t i = 0; i < g.size(); i += 1)
 		{
 			if (g[i] != x_index_[i])
@@ -38,7 +35,18 @@ public:
 	{
 		for (size_t i = 0; i < rhs.size(); i += 1)
 		{
-			x_index_.push_back(rhs[0]);
+			bool add = true;
+			for (int j = 0; j < x_index_.size(); j += 1)
+			{
+				if (rhs[i] == x_index_[j])
+				{
+					add = false;
+					break;
+				}
+			}
+
+			if(add)
+				x_index_.push_back(rhs[i]);
 		}
 		sort(x_index_.begin(), x_index_.end());
 		return *this;
@@ -64,19 +72,26 @@ class GroupsResult
 {
 public:
 	const int problem_ID() const { return problem_id_; }
-	const std::string& grouping_alg() const { return grouping_name; }
+	const std::string& grouping_alg() const { return grouping_name_; }
+	const unsigned long long int FFE_cost() const { return num_FE_cost_; }
 	std::vector<Group>& nonsep_groups() { return nonsep_groups_; }
 	std::vector<Group>& sep_groups() { return sep_groups_; }
 
+	void setNumFE(const unsigned long long int FE) { num_FE_cost_ = FE; }
 	void setProblemID(const int ID) { problem_id_ = ID; }
-	void setGroupingAlgName(const std::string& g_name) { grouping_name = g_name; }
+	void setGroupingAlgName(const std::string& g_name) { grouping_name_ = g_name; }
+
+	void outputToFile(const std::string& grouping_algName)const;
+	void inputResult(const std::string& grouping_algName, const int prob_ID);
 
 private:
 	std::vector<Group> nonsep_groups_;
 	std::vector<Group> sep_groups_;
 
 	int problem_id_ = 0;
-	std::string grouping_name;
+	std::string grouping_name_;
+
+	unsigned long long int num_FE_cost_ = 0;
 };
 
 
