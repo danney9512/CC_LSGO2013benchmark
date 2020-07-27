@@ -140,7 +140,8 @@ void mL_SHADE::Solve(Individual& context_vec, const Group& group, const vector<v
 		}
 
 		// For each individual in current popultaion
-		for (size_t i = 0; i < NP; ++i)
+		//for (size_t i = 0; i < NP; ++i)
+		for(size_t i = 0; i < group.size(); i += 1)
 		{
 			// Generate CRi and Fi
 			int r = alg_math::randInt(0, (int)(H - 1));
@@ -162,7 +163,8 @@ void mL_SHADE::Solve(Individual& context_vec, const Group& group, const vector<v
 
 			// cur-to-pbest mutation
 			Individual::GeneVec donor_vector;
-			donor_vector = CurtopBest_DonorVec((int)i, pbest, Fi, pop, archive_pop);
+			//donor_vector = CurtopBest_DonorVec((int)i, pbest, Fi, pop, archive_pop);
+			donor_vector = CurtopBest_DonorVec(group[i], pbest, Fi, pop, archive_pop);
 
 			// DE crossover
 			int R = alg_math::randInt(0, (int)(Gene_Len - 1));
