@@ -2,7 +2,7 @@
 #include "experiment.h"
 #include <string>
 
-Experiment::Experiment(std::string algo_str = "", std::string grouping = "", bool grouped=false, std::string optimizer="", std::string CB = "", size_t pid = 0, unsigned long long int nFE = 0)
+Experiment::Experiment(std::string algo_str, std::string grouping, bool grouped, std::string optimizer, std::string CB, size_t pid, unsigned long long int nFE)
 {
 	algo_name_ = algo_str;
 	grouping_ = grouping;
