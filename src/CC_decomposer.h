@@ -14,18 +14,20 @@ class Decomposer
 public:
 	typedef std::vector<double> CC_SubComponent;
 
-	explicit Decomposer(std::string& optimizer_name, std::ifstream& optimizer_ifile, Group& g, const int pop_size);
+	explicit Decomposer(Group& g, const int pop_size);
+	explicit Decomposer(const std::string& optimizer_name, const std::string& optimizer_path, Group& g, const int pop_size);
 
-
-	Individual& Optimize(const int iteration, const CProblem& prob, Individual& context_vec, unsigned long long int& nfe, const unsigned long long int& MAX_nFE);
+	void SetupOptimizer(const std::string& optimizer_name, const std::string& optimizer_path, const unsigned long long int maxFE);
 	void PopulationInitialization(const CProblem& prob);
 
+	Individual& Optimize(const int iteration, const CProblem& prob, Individual& context_vec, unsigned long long int& nfe, const unsigned long long int& MAX_nFE);
+	
 	void setMutationOperator(std::string opt) { mutation_opt_ = opt; }
 
 	const Group& group() const { return group_; }
 	const std::vector<CC_SubComponent>& population() const { return population_; }
 
-	~Decomposer() { delete optimizer_; }
+	~Decomposer() { if (optimizer_ != nullptr)	delete optimizer_; }
 private:
 	Group group_;
 
@@ -33,7 +35,6 @@ private:
 	std::vector<CC_SubComponent> population_;
 	
 	BaseEA *optimizer_ = nullptr;
-
 	std::string mutation_opt_;
 };
 

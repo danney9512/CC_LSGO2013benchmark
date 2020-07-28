@@ -5,13 +5,13 @@
 CC_alg::CC_alg(const unsigned long long int used_nfe, unsigned long long int max_nFE)
 {
 	nFE_ = used_nfe;
-	max_nFE_ = max_nFE_;
+	max_nFE_ = max_nFE;
 
 	optimizer_LearningPeriod_ = 0;
 	pop_size_ = 0;
 }
 
-void CC_alg::Setup(std::ifstream& CC_ifile, GroupsResult& all_groups, std::string& optimizer_name, std::ifstream& optimizer_ifile)
+void CC_alg::Setup(std::ifstream& CC_ifile, GroupsResult& all_groups, std::string& optimizer_name, const std::string& optimizer_path)
 {
 	if (!CC_ifile) return;
 
@@ -26,15 +26,20 @@ void CC_alg::Setup(std::ifstream& CC_ifile, GroupsResult& all_groups, std::strin
 
 	for (int i = 0; i < sep_num; ++i)
 	{
-		Decomposer dp(optimizer_name, optimizer_ifile, all_groups.sep_groups()[i], pop_size_);
+		Decomposer dp(all_groups.sep_groups()[i], pop_size_);
 		decomposers_.push_back(dp);
 	}
 	for (int i = 0; i < nonsep_num; ++i)
 	{
-		Decomposer dp(optimizer_name, optimizer_ifile, all_groups.nonsep_groups()[i], pop_size_);
+		Decomposer dp(all_groups.nonsep_groups()[i], pop_size_);
 		decomposers_.push_back(dp);
 	}
-
+	
+	for (size_t i = 0; i < decomposers_.size(); ++i)
+	{
+		decomposers_[i].SetupOptimizer(optimizer_name, optimizer_path, max_nFE_);
+	}
+	
 }
 
 

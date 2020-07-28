@@ -12,7 +12,7 @@ class CC_alg
 public:
 	explicit CC_alg(const unsigned long long int used_nfe, unsigned long long int max_nFE);
 
-	void Setup(std::ifstream& CC_ifile, GroupsResult& all_groups, std::string& optimizer_name, std::ifstream& optimizer_ifile);
+	void Setup(std::ifstream& CC_ifile, GroupsResult& all_groups, std::string& optimizer_name, const std::string& optimizer_path);
 	Individual& Solve(const CProblem& prob);
 
 private:

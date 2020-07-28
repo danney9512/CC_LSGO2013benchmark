@@ -4,14 +4,33 @@
 #include "alg_L-SHADE.h"
 #include "alg_mL-SHADE.h"
 
-Decomposer::Decomposer(std::string& optimizer_name, std::ifstream& optimizer_ifile, Group& g, const int pop_size)
+Decomposer::Decomposer(Group& g, const int pop_size)
 {
 	group_ = g;
 	pop_size_ = pop_size;
 
-	//population_ ªì©l¤Æ¬° 0
+	// Initialization the population_ to zero
 	population_ = std::vector<CC_SubComponent>(pop_size_, CC_SubComponent(g.size(), 0.0));
 
+	optimizer_ = nullptr;
+	mutation_opt_ = "";
+}
+
+Decomposer::Decomposer(const std::string& optimizer_name, const std::string& optimizer_path, Group& g, const int pop_size)
+{
+	group_ = g;
+	pop_size_ = pop_size;
+
+	// Initialization the population_ to zero
+	population_ = std::vector<CC_SubComponent>(pop_size_, CC_SubComponent(g.size(), 0.0));
+
+	optimizer_ = nullptr;
+	mutation_opt_ = "";
+
+
+	/////  XMEMORY ERROR  /////
+	/*
+	std::ifstream optimizer_ifile(optimizer_path);
 	if (optimizer_name == "mL-SHADE")
 	{
 		optimizer_ = new mL_SHADE();
@@ -21,8 +40,24 @@ Decomposer::Decomposer(std::string& optimizer_name, std::ifstream& optimizer_ifi
 		else
 			optimizer_->Setup(optimizer_ifile);
 	}
+	optimizer_ifile.close();
+	*/
+	/////  XMEMORY ERROR /////
+}
 
-	mutation_opt_ = "";
+void Decomposer::SetupOptimizer(const std::string& optimizer_name, const std::string& optimizer_path, const unsigned long long int maxFE)
+{
+	std::ifstream optimizer_ifile(optimizer_path);
+	if (optimizer_name == "mL-SHADE")
+	{
+		optimizer_ = new mL_SHADE(maxFE);
+
+		if (!optimizer_ifile)
+			return;
+		else
+			optimizer_->Setup(optimizer_ifile);
+	}
+	optimizer_ifile.close();
 }
 
 void SubComponentInitialization(std::vector<double>& sub_component, const CProblem& prob)

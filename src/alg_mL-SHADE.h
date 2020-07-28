@@ -15,6 +15,7 @@ class mL_SHADE : public BaseEA
 {
 public:
 	mL_SHADE() : BaseEA("mL-SHADE") {}
+	explicit mL_SHADE(unsigned long long int maxFE) : BaseEA("mL-SHADE") { max_nfe_ = maxFE; }
 
 	virtual void Setup(std::ifstream &ifile);
 	virtual void Solve(Population* solutions, const CProblem& prob) {};

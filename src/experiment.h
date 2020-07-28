@@ -39,6 +39,7 @@ public:
 	void resize(std::size_t t) { exps.resize(t); }
 	void push_back(const Experiment &exp) { exps.push_back(exp); }
 	void clear() { exps.clear(); }
+
 private:
 	std::vector<Experiment> exps;
 };

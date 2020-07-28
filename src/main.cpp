@@ -53,9 +53,10 @@ int main()
 	// 宣告實驗變數
 	constexpr int NumOfRuns = 1;
 
-	//BaseEA* ea = nullptr;
+	CC_alg* CC = nullptr;
+
 	string algo_name, algo_ini_str, grouping_name, optimizer_name, optimizer_ini_str;
-	int problem_id = 0;
+	size_t problem_id = 0;
 
 
 	// Compute time initialize
@@ -64,34 +65,58 @@ int main()
 
 	allExp_START = clock();
 	// Run Experiment
-	for (int i = 0; i < exp_set.size(); i += 1)
+	for (size_t exp_i = 0; exp_i < exp_set.size(); exp_i += 1)
 	{
-		algo_name = exp_set[i].algo_name();
-		grouping_name = exp_set[i].grouping();
-		problem_id = exp_set[i].problem_id();
+		algo_name = exp_set[exp_i].algo_name();
+		problem_id = exp_set[exp_i].problem_id();
+		optimizer_name = exp_set[exp_i].optimizer();
+		grouping_name = exp_set[exp_i].grouping();
+		bool grouped = exp_set[exp_i].grouped();
 
-		cout << "Experiment" << i + 1 << ", " << algo_name << " solves " << prob_set[problem_id - 1].name() << ": " << endl;
+		cout << "Experiment" << exp_i + 1 << ", " << algo_name << " solves " << prob_set[problem_id - 1].name() << ": " << endl;
+		
+		GroupsResult groupingResult;
+
 		if (algo_name == "CC")
 		{
 			// Grouping 
-			if (grouping_name == "grouped")
+			if (grouped)
 			{
 				// 去讀分群好的檔案不用再分群了
-				// 讀檔路徑設定
-
-				// GroupingResult
-				// 
+				groupingResult.inputResult(grouping_name, problem_id);
 			}
 			else
 			{
 				// 執行分群演算法，將分群結果直接給 CC 建構
 			}
 
-			// 建構 CC
+			// Construct CC
+			CC = new CC_alg(groupingResult.FFE_cost(), exp_set[exp_i].max_nFE());
+
+			cout << exp_i << endl;
+
+			/*
+			cout << "Separable variables: " << endl;
+			for (int i = 0; i < groupingResult.sep_groups().size(); ++i)
+			{
+				cout << groupingResult.sep_groups()[i][0] << " ";
+			}
+			cout << endl << endl;
+			cout << "Non-Separable variables: " << endl;
+			for (int i = 0; i < groupingResult.nonsep_groups().size(); ++i)
+			{
+				for (int j = 0; j < groupingResult.nonsep_groups()[i].size(); ++j)
+				{
+					cout << groupingResult.nonsep_groups()[i][j] << " ";
+				}
+				cout << endl;
+			}
+			*/
+
 		}
 		else
 		{
-			cout << "Error msg: Can't recognize the algorithm." << endl;
+			cout << "\tError msg: Can't recognize the algorithm." << endl;
 			continue;
 		}
 
@@ -105,29 +130,38 @@ int main()
 		optimizer_ini_str  = "experiments\\optimizer\\" + optimizer_name + "\\exp_CEC2013benchmark_" + IntToStr(problem_id, 2) + ".ini";
 		ifstream optimizer_para_ini(optimizer_ini_str);
 
+
 		if (!algo_para_ini || !optimizer_para_ini)
 		{
 			if (!algo_para_ini)
-				cout << "Error msg: Can't load the CC parameters, check the .ini file's path." << endl;
+			{
+				cout << "\tError msg: Can't load the CC parameters, check the .ini file's path." << endl;
+			}
 			if (!optimizer_para_ini)
-				cout << "Error msg: Can't load the CC optimizer's parameters, check the .ini file's path." << endl;
+			{
+				cout << "\tError msg: Can't load the CC optimizer's parameters, check the .ini file's path." << endl;
+			}
+			continue;
 		}
 		else
 		{
+			
 			// Execution the Algorithm
 			// 執行演算法
 
-			// Compute time initialize for each experiment
+			// Computing time initialize for each experiment
 			double START, END;
 
 			// Algorithm parameter's setting
-			//ea -> Setup(exp_algo_para_ini);
+			CC -> Setup(algo_para_ini, groupingResult, optimizer_name, optimizer_ini_str);
 
-			string result_filename = algo_name + optimizer_name + "-" + grouping_name + "_F" + IntToStr(problem_id, 2) + "_D" + IntToStr(prob_set[problem_id - 1].dim(), 2) + ".csv";
-			Result result(problem_id, NumOfRuns, result_filename);
 
+
+			//string result_filename = algo_name + optimizer_name + "-" + grouping_name + "_F" + IntToStr(problem_id, 2) + "_D" + IntToStr(prob_set[problem_id - 1].dim(), 2) + ".csv";
+			//Result result(problem_id, NumOfRuns, result_filename);
+			/*
 			START = clock();
-			// Running EA
+			// Running CCEA in parallel
 			omp_set_dynamic(0);			// Explicitly disable dynamic teams
 			omp_set_num_threads(4);		// Set num of thread
 			#pragma omp parallel
@@ -147,7 +181,7 @@ int main()
 					//ea->Solve(&solutions, prob_set[problem_id - 1]);
 				
 					// CC result for each run
-					result[run] = solutions.fitness();
+					//result[run] = solutions.fitness();
 					cout << "Run " << run << ", best fitness: " << solutions.fitness() << endl;
 				}
 			}
@@ -156,14 +190,22 @@ int main()
 			result.compute(prob_set[problem_id - 1].global_optimum());
 			result.outputToFile(prob_set[problem_id - 1].global_optimum());
 			result.close();
+			
 
 			cout << "Experiment " << i + 1 << " ended." << " Execution Time: " << (END - START) / CLOCKS_PER_SEC << " sec" << endl << endl;
-			
-			/*
-			if (ea != nullptr) 
-				delete ea;
 			*/
+			
+			
+			
 		}
+
+		// ini file close
+		algo_para_ini.close();
+		optimizer_para_ini.close();
+
+		// Destructor
+		if (CC != nullptr)
+			delete CC;
 	}
 
 	allExp_END = clock();
