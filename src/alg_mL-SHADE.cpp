@@ -16,6 +16,7 @@
 #include <random>
 #include <iostream>
 #include <climits>
+#include <vector>
 using namespace std;
 
 //-------------------------------
@@ -292,6 +293,39 @@ Individual::GeneVec mL_SHADE::CurtopBest_DonorVec(int target_idx, double p, doub
 	for (size_t j = 0; j < gene_len; ++j)
 	{
 		donor_vector[j] = g_cur[j] + f * (g_best[j] - g_cur[j] + g_r1[j] - g_r2[j]);
+	}
+	return donor_vector;
+}
+
+Individual::GeneVec mL_SHADE::Rand2_DonorVec(double f, const Population& pop)
+{
+	size_t Pop_Size = pop.size();
+
+	std::vector<int> shuffle_vec(Pop_Size, 0);
+	for (int i = 0; i < Pop_Size; i += 1)
+	{
+		shuffle_vec[i] = i;
+	}
+	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+	std::shuffle(shuffle_vec.begin(), shuffle_vec.end(), std::default_random_engine(seed));
+
+	int x_r1 = shuffle_vec[0],
+		x_r2 = shuffle_vec[1],
+		x_r3 = shuffle_vec[2],
+		x_r4 = shuffle_vec[3],
+		x_r5 = shuffle_vec[4];
+
+	size_t gene_len = pop[x_r1].gene().size();
+	Individual::GeneVec g_r1 = pop[x_r1].gene(),
+		g_r2 = pop[x_r2].gene(),
+		g_r3 = pop[x_r3].gene(),
+		g_r4 = pop[x_r4].gene(),
+		g_r5 = pop[x_r5].gene();
+
+	Individual::GeneVec donor_vector(gene_len);
+	for (size_t j = 0; j < gene_len; ++j)
+	{
+		donor_vector[j] = g_r1[j] + f * (g_r2[j] - g_r3[j]) + f * (g_r4[j] - g_r5[j]);
 	}
 	return donor_vector;
 }
