@@ -119,7 +119,9 @@
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ConformanceMode>true</ConformanceMode>
+      <ConformanceMode>false</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -133,7 +135,9 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ConformanceMode>true</ConformanceMode>
+      <ConformanceMode>false</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -166,9 +170,11 @@
     <ClCompile Include="src\alg_log.cpp" />
     <ClCompile Include="src\alg_mL-SHADE.cpp" />
     <ClCompile Include="src\alg_mutation.cpp" />
+    <ClCompile Include="src\alg_result.cpp" />
     <ClCompile Include="src\CC.cpp" />
     <ClCompile Include="src\CC_decomposer.cpp" />
     <ClCompile Include="src\CC_group.cpp" />
+    <ClCompile Include="src\CC_mL-SHADE.cpp" />
     <ClCompile Include="src\experiment.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\problem.cpp" />
@@ -202,9 +208,11 @@
     <ClInclude Include="src\alg_mL-SHADE.h" />
     <ClInclude Include="src\alg_mutation.h" />
     <ClInclude Include="src\alg_population.h" />
+    <ClInclude Include="src\alg_result.h" />
     <ClInclude Include="src\CC.h" />
     <ClInclude Include="src\CC_decomposer.h" />
     <ClInclude Include="src\CC_group.h" />
+    <ClInclude Include="src\CC_mL-SHADE.h" />
     <ClInclude Include="src\experiment.h" />
     <ClInclude Include="src\problem.h" />
     <ClInclude Include="src\problem_set.h" />

@@ -114,6 +114,12 @@
     <ClCompile Include="src\CC_decomposer.cpp">
       <Filter>來源檔案</Filter>
     </ClCompile>
+    <ClCompile Include="src\alg_result.cpp">
+      <Filter>來源檔案</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CC_mL-SHADE.cpp">
+      <Filter>來源檔案</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\alg_base.h">
@@ -141,9 +147,6 @@
       <Filter>標頭檔</Filter>
     </ClInclude>
     <ClInclude Include="src\alg_population.h">
-      <Filter>標頭檔</Filter>
-    </ClInclude>
-    <ClInclude Include="src\experiment.h">
       <Filter>標頭檔</Filter>
     </ClInclude>
     <ClInclude Include="src\problem.h">
@@ -213,6 +216,15 @@
       <Filter>標頭檔</Filter>
     </ClInclude>
     <ClInclude Include="src\CC_decomposer.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="src\experiment.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="src\alg_result.h">
+      <Filter>標頭檔</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CC_mL-SHADE.h">
       <Filter>標頭檔</Filter>
     </ClInclude>
   </ItemGroup>
