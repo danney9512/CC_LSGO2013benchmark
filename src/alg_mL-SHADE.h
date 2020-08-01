@@ -73,6 +73,7 @@ private:
 	unsigned long long int max_nfe_;
 	Individual::GeneVec CurtopBest_DonorVec(int target_idx, double p, double f, const Population& pop, const Population& archive);
 	Individual::GeneVec Rand2_DonorVec(double f, const Population& pop);
+	Individual::GeneVec CurtogrBest_DonorVec(int target_idx, double p, double f, const Population& pop);
 };
 #endif // !ALG_mLSHADE__
 

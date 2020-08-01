@@ -141,8 +141,7 @@ void mL_SHADE::Solve(Individual& context_vec, const Group& group, const vector<v
 		}
 
 		// For each individual in current popultaion
-		//for (size_t i = 0; i < NP; ++i)
-		for(size_t i = 0; i < group.size(); i += 1)
+		for (size_t i = 0; i < NP; ++i)
 		{
 			// Generate CRi and Fi
 			int r = alg_math::randInt(0, (int)(H - 1));
@@ -326,6 +325,61 @@ Individual::GeneVec mL_SHADE::Rand2_DonorVec(double f, const Population& pop)
 	for (size_t j = 0; j < gene_len; ++j)
 	{
 		donor_vector[j] = g_r1[j] + f * (g_r2[j] - g_r3[j]) + f * (g_r4[j] - g_r5[j]);
+	}
+	return donor_vector;
+}
+
+Individual::GeneVec mL_SHADE::CurtogrBest_DonorVec(int target_idx, double p, double f, const Population& pop)
+{
+	size_t Pop_Size = pop.size();
+	int p_pop_size = round(Pop_Size * p);
+	//if (best_idx_max < 2) best_idx_max = 2;
+
+	std::vector<int> shuffle_vec(Pop_Size, 0);
+	for (int i = 0; i < Pop_Size; i += 1)
+	{
+		shuffle_vec[i] = i;
+	}
+	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+	std::shuffle(shuffle_vec.begin(), shuffle_vec.end(), std::default_random_engine(seed));
+
+	int x_grbest = p_pop_size;
+	for (int i = 0; i < p_pop_size; i += 1)
+	{
+		x_grbest = std::min(x_grbest, shuffle_vec[i]);
+	}
+
+	std::shuffle(shuffle_vec.begin(), shuffle_vec.end(), std::default_random_engine(seed));
+	int	x_r1 = 0;
+	for (int i = 0; i < Pop_Size; i += 1)
+	{
+		if (shuffle_vec[i] != x_grbest && shuffle_vec[i] != target_idx)
+		{
+			x_r1 = shuffle_vec[i];
+			break;
+		}
+	}
+
+	int x_r2 = 0;
+	for (int i = 0; i < Pop_Size; i += 1)
+	{
+		if (shuffle_vec[i] != x_grbest && shuffle_vec[i] != target_idx && shuffle_vec[i] != x_r1)
+		{
+			x_r2 = shuffle_vec[i];
+			break;
+		}
+	}
+
+	size_t gene_len = pop[target_idx].gene().size();
+	Individual::GeneVec g_cur = pop[target_idx].gene(),
+		g_grbest = pop[x_grbest].gene(),
+		g_r1 = pop[x_r1].gene(),
+		g_r2 = pop[x_r2].gene();
+
+	Individual::GeneVec donor_vector(gene_len);
+	for (size_t j = 0; j < gene_len; ++j)
+	{
+		donor_vector[j] = g_cur[j] + f * (g_grbest[j] - g_cur[j] + g_r1[j] - g_r2[j]);
 	}
 	return donor_vector;
 }
