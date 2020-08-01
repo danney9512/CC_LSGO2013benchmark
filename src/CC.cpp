@@ -95,12 +95,19 @@ Individual CC_alg::Solve(const CProblem& prob)
 		{
 			decomposers_[i].setMutationOperator(MutationOperator);
 
-			cout << "Decomposer[ " << i << "]   ";
+			//cout << "Decomposer[ " << i << "]   ";
 			// Optimize each SubComponents
 			context_vector_ = decomposers_[i].Optimize(optimizer_LearningPeriod_, prob, fp, context_vector_, nFE_now, decomposers_.size());
 			
+			if (nFE_now > MAX_nFE)
+			{
+
+			}
+
 			//cout << "Group " << i << "  ,nFE = " << nFE_now << endl;			
 		}
+
+		cout << "Cycle " << cycle_cnt << ", Best fitness = " << context_vector_.fitness() << endl;
 	}
 	
 	return context_vector_;

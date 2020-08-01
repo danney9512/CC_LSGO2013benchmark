@@ -271,20 +271,21 @@ Individual CC_mL_SHADE::Solve(const Individual& context_vec, const Group& group,
 		NP_ = (size_t)round(((1.0 * (int)(Nmin - NP) / (double)(Max_NFE / num_deps)) * (nfe_local + used_nfe)) + NP);
 		A_ = (size_t)NP * rarc_;
 
-		cout << "NP = " << NP << endl;
-
 		pop.sort();
-		pop.resize(NP);
+		pop.resize(NP_);
 		if (archive_pop.size() > A_)
 		{
 			archive_pop.shuffle();
 			archive_pop.resize(A_);
 		}
+
+		// END one iteration
+
 	}
 	pop.sort();
 
 	// return the evolved population back to subcomponent's population
-	population.resize(NP);
+	population.resize(NP_);
 	for (size_t i = 0; i < population.size(); ++i)
 	{
 		for (int j = 0; j < population[i].size(); j += 1)
