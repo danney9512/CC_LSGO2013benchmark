@@ -1,14 +1,20 @@
 #include "CC.h"
 #include "2013LSGOBenchmarks/2013Benchmarks.h"
 #include "alg_math.h"
+#include "alg_log.h"
 
-CC_alg::CC_alg(const unsigned long long int used_nfe, unsigned long long int max_nFE)
+CC_alg::CC_alg(const unsigned long long int used_nfe, Experiment& exp)
 {
 	nFE_ = used_nfe;
-	max_nFE_ = max_nFE;
+	max_nFE_ = exp.max_nFE();
 
 	optimizer_LearningPeriod_ = 0;
 	pop_size_ = 0;
+
+	grouping_name_ = exp.grouping();
+	optimizer_name_ = exp.optimizer();
+	CB_name_ = exp.CB();
+	alg_name_ = "CC" + optimizer_name_ + "-" + grouping_name_ + "-" + CB_name_;
 }
 
 void CC_alg::Setup(std::ifstream& CC_ifile, GroupsResult& all_groups, std::string& optimizer_name, const std::string& optimizer_path)
@@ -45,9 +51,8 @@ void CC_alg::Setup(std::ifstream& CC_ifile, GroupsResult& all_groups, std::strin
 
 Individual CC_alg::Solve(const CProblem& prob)
 {
-	// Set log system and target problem
-
-	// TODO: log setting
+	// Set log system
+	Log log(alg_name_ + '_' + to_string(prob.id()) + "_D" + to_string(prob.dim()) + "_" + prob.name(), max_nFE_, prob.dim(), prob.global_optimum());
 
 
 	// Set parameter and random generator
@@ -83,9 +88,10 @@ Individual CC_alg::Solve(const CProblem& prob)
 	context_vector_.fitness() = fp->compute(context_vector_.gene());
 	++nFE_now;
 
-
+	
 	
 	// CC evaluation
+	constexpr int bestFitness_log_cycle = 5;
 	size_t cycle_cnt = 0;
 	while (nFE_now < MAX_nFE)
 	{
@@ -99,15 +105,26 @@ Individual CC_alg::Solve(const CProblem& prob)
 			// Optimize each SubComponents
 			context_vector_ = decomposers_[i].Optimize(optimizer_LearningPeriod_, prob, fp, context_vector_, nFE_now, decomposers_.size());
 			
+			// Log data output
+			if (log.LSGO2013_record_point((int)nFE_now))
+			{
+				log.store_errorvalue(context_vector_);
+			}
+			if (cycle_cnt % bestFitness_log_cycle == 0 || nFE_now >= MAX_nFE)
+			{
+				log.store_bestfitness(context_vector_, i, nFE_now);
+			}
+			
+
 			if (nFE_now > MAX_nFE)
 			{
-
+				break;
 			}
 
 			//cout << "Group " << i << "  ,nFE = " << nFE_now << endl;			
 		}
 
-		cout << "Cycle " << cycle_cnt << ", Best fitness = " << context_vector_.fitness() << endl;
+		//cout << "Cycle " << cycle_cnt << ", Best fitness = " << context_vector_.fitness() << endl;
 	}
 	
 	return context_vector_;

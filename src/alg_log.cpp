@@ -190,6 +190,11 @@ void Log::store_bestfitness(Population* pop, const int nfe)
 	fitness_stream_ << nfe << "," << setprecision(16) << cpop[0].fitness() << endl;
 }
 
+void Log::store_bestfitness(const Individual& sol, const size_t group_index, const unsigned long long int nfe)
+{
+	// store best fitness in each subcomponent
+	fitness_stream_ << nfe << "," << group_index << "," << setprecision(16) << sol.fitness() << endl;
+}
 
 void Log::store_errorvalue(Population* pop)
 {
@@ -203,6 +208,13 @@ void Log::store_errorvalue(Population* pop)
 		errorvalue_stream_ << setprecision(16) << 0 << endl;
 	else
 		errorvalue_stream_ << setprecision(16) << error_value << endl;
+}
+
+void Log::store_errorvalue(const Individual& sol)
+{
+	double error_value = sol.fitness() - global_optimum_;
+
+	errorvalue_stream_ << output_FFE_ << "," << error_value << endl;
 }
 
 void Log::store(Population* pop, const mL_SHADE::MemorySystem& mry, const std::vector<mL_SHADE::Memory>& sample_parameter, const std::vector<mL_SHADE::Memory>& success_parameter, const int nfe)

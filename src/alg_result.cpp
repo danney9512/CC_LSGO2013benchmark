@@ -44,19 +44,19 @@ void Result::compute(const int global_optimum)
 	fitness_std_ = sqrt(sum / num_of_Run_);
 	
 	error_best_ = fitness_best_ - global_optimum;
-	if (error_best_ <= pow(10, -8))		error_best_ = 0;
+	//if (error_best_ <= pow(10, -8))		error_best_ = 0;
 	error_worst_ = fitness_worst_ - global_optimum;
-	if (error_worst_ <= pow(10, -8))	error_worst_ = 0;
+	//if (error_worst_ <= pow(10, -8))	error_worst_ = 0;
 	error_median_ = fitness_median_ - global_optimum;
-	if (error_median_ <= pow(10, -8))	error_median_ = 0;
+	//if (error_median_ <= pow(10, -8))	error_median_ = 0;
 	error_mean_ = fitness_mean_ - global_optimum;
-	if (error_mean_ <= pow(10, -8))		error_mean_ = 0;
+	//if (error_mean_ <= pow(10, -8))		error_mean_ = 0;
 
 	sum = 0.0;
 	for (size_t i = 0; i < num_of_Run_; ++i)
 	{
 		double error_tmp = best_fitness_vec_[i] - global_optimum;
-		if (error_tmp <= pow(10, -8))	error_tmp = 0;
+		//if (error_tmp <= pow(10, -8))	error_tmp = 0;
 
 		sum += pow((error_tmp - error_mean_), 2);
 	}
@@ -82,8 +82,7 @@ void Result::outputToFile(const int global_optimum)
 	for (int i = 0; i<best_fitness_vec_.size(); ++i)
 	{
 		double tmp = best_fitness_vec_[i] - global_optimum;
-		if (tmp < pow(10, -8))
-			tmp = 0;
+		//if (tmp < pow(10, -8)) tmp = 0;
 
 		f_all_result_ << setprecision(16) << tmp << endl;
 	}

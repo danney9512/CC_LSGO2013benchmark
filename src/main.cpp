@@ -55,7 +55,7 @@ int main()
 
 	CC_alg* CC = nullptr;
 
-	string algo_name, algo_ini_str, grouping_name, optimizer_name, optimizer_ini_str;
+	string algo_name, algo_ini_str, grouping_name, optimizer_name, CB_name, optimizer_ini_str;
 	size_t problem_id = 0;
 
 
@@ -71,6 +71,7 @@ int main()
 		problem_id = exp_set[exp_i].problem_id();
 		optimizer_name = exp_set[exp_i].optimizer();
 		grouping_name = exp_set[exp_i].grouping();
+		CB_name = exp_set[exp_i].CB();
 		bool grouped = exp_set[exp_i].grouped();
 
 		cout << "Experiment" << exp_i + 1 << ", " << algo_name << " solves " << prob_set[problem_id - 1].name() << ": " << endl;
@@ -91,9 +92,8 @@ int main()
 			}
 
 			// Construct CC
-			CC = new CC_alg(groupingResult.FFE_cost(), exp_set[exp_i].max_nFE());
+			CC = new CC_alg(groupingResult.FFE_cost(), exp_set[exp_i]);
 
-			cout << exp_i << endl;
 
 			/*
 			cout << "Separable variables: " << endl;
@@ -155,9 +155,9 @@ int main()
 			// Algorithm parameter's setting
 			CC -> Setup(algo_para_ini, groupingResult, optimizer_name, optimizer_ini_str);
 
-
-			//string result_filename = algo_name + "_F" + IntToStr(problem_id, 2) + "_D" + IntToStr(prob_set[problem_id - 1].dim(), 2) + ".csv";
-			//Result result(problem_id, NumOfRuns, result_filename);
+			string algo_fullName = algo_name + optimizer_name + "-" + grouping_name + "-" + CB_name;
+			string result_filename = algo_fullName + "_F" + IntToStr(problem_id, 2) + "_D" + IntToStr(prob_set[problem_id - 1].dim(), 2) + ".csv";
+			Result result(problem_id, NumOfRuns, result_filename);
 
 			START = clock();
 			// Running EA
@@ -180,15 +180,15 @@ int main()
 					best_solution = CC->Solve(prob_set[problem_id - 1]);
 
 					// CC result for each run
-					//result[run] = solutions.fitness();
+					result[run] = best_solution.fitness();
 					cout << "Run " << run << ", best fitness: " << best_solution.fitness() << endl;
 				}
 			}
 			END = clock();
 
-			//result.compute(prob_set[problem_id - 1].global_optimum());
-			//result.outputToFile(prob_set[problem_id - 1].global_optimum());
-			//result.close();
+			result.compute(prob_set[problem_id - 1].global_optimum());
+			result.outputToFile(prob_set[problem_id - 1].global_optimum());
+			result.close();
 
 			cout << "Experiment " << exp_i + 1 << " ended." << " Execution Time: " << (END - START) / CLOCKS_PER_SEC << " sec" << endl << endl;
 

@@ -33,6 +33,8 @@ public:
 	void store_archive(Population* archive_pop);
 	void store_errorvalue(Population* pop);
 	
+	void store_bestfitness(const Individual& sol, const size_t group_index, const unsigned long long int nfe);
+	void store_errorvalue(const Individual& sol);
 
 private:
 	static int numberOfk;

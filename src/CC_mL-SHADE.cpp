@@ -105,9 +105,7 @@ void CC_mL_SHADE::MemorySystem::pertub_memory()
 
 Individual CC_mL_SHADE::Solve(const Individual& context_vec, const Group& group, std::vector<std::vector<double>>& population, const CProblem& prob, Benchmarks* fp, const int iteration, unsigned long long int& nfe, unsigned long long int used_nfe, const size_t num_deps)
 {
-	// Set log system and target problem 
-	//Log log(name() + '_' + to_string(prob.id()) + "_D" + to_string(prob.dim()) + "_" + prob.name(), max_nfe_, prob.dim(), prob.global_optimum());
-
+	// Set target problem 
 	Individual::SetTargetProblem(prob);
 
 	// Set parameter and random generator

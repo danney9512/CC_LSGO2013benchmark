@@ -3,6 +3,7 @@
 
 #include <fstream>
 
+#include "experiment.h"
 #include "problem.h"
 #include "alg_individual.h"
 #include "CC_decomposer.h"
@@ -10,7 +11,7 @@
 class CC_alg
 {
 public:
-	explicit CC_alg(const unsigned long long int used_nfe, unsigned long long int max_nFE);
+	explicit CC_alg(const unsigned long long int used_nfe, Experiment& exp);
 
 	void Setup(std::ifstream& CC_ifile, GroupsResult& all_groups, std::string& optimizer_name, const std::string& optimizer_path);
 	Individual Solve(const CProblem& prob);
@@ -25,6 +26,11 @@ private:
 
 	int pop_size_;
 	int optimizer_LearningPeriod_;
+
+	string alg_name_,
+		grouping_name_,
+		optimizer_name_,
+		CB_name_;
 };
 
 
