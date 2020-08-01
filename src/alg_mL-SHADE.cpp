@@ -346,7 +346,8 @@ Individual::GeneVec mL_SHADE::CurtogrBest_DonorVec(int target_idx, double p, dou
 	int x_grbest = p_pop_size;
 	for (int i = 0; i < p_pop_size; i += 1)
 	{
-		x_grbest = std::min(x_grbest, shuffle_vec[i]);
+		if(shuffle_vec[i] != target_idx)
+			x_grbest = std::min(x_grbest, shuffle_vec[i]);
 	}
 
 	std::shuffle(shuffle_vec.begin(), shuffle_vec.end(), std::default_random_engine(seed));
