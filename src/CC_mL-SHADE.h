@@ -1,5 +1,5 @@
-#ifndef ALG_mLSHADE__
-#define ALG_mLSHADE__
+#ifndef CC_OPTIMIZER_MLSHADE__
+#define CC_OPTIMIZER_MLSHADE__
 
 #include "alg_individual.h"
 #include "alg_population.h"
@@ -9,17 +9,20 @@
 #include <fstream>
 #include <vector>
 
+#include "2013LSGOBenchmarks/2013Benchmarks.h"
+
 class Group;
 
-class mL_SHADE : public BaseEA
+class CC_mL_SHADE
 {
 public:
-	mL_SHADE() : BaseEA("mL-SHADE") {}
-	explicit mL_SHADE(unsigned long long int maxFE) : BaseEA("mL-SHADE") { max_nfe_ = maxFE; }
+	CC_mL_SHADE() {}
+	explicit CC_mL_SHADE(const size_t NP, const unsigned long long int maxFE);
 
-	virtual void Setup(std::ifstream& ifile);
-	virtual void Solve(Population* solutions, const CProblem& prob) {};
-	virtual void Solve(Individual& context_vec, const Group& group, const std::vector<std::vector<double>>& population, const CProblem& prob, const int iteration, const int pop_size, unsigned long long int& nfe, const unsigned long long int max_nFE);
+	const std::string& name() const { return name_; }
+
+	void Setup(std::ifstream& ifile);
+	Individual Solve(const Individual& context_vec, const Group& group, std::vector<std::vector<double>>& population, const CProblem& prob, Benchmarks* fp, const int iteration, unsigned long long int& nfe, unsigned long long int used_nfe, const size_t num_deps);
 
 	class Memory
 	{
@@ -71,11 +74,20 @@ private:
 	size_t h_,
 		rNinit_,
 		nmin_;
+	std::string name_{};
 	unsigned long long int max_nfe_;
+
+	MemorySystem memory_sys_;
+
+	size_t NP_,
+		A_;
+	
 	Individual::GeneVec CurtopBest_DonorVec(int target_idx, double p, double f, const Population& pop, const Population& archive);
 	Individual::GeneVec Rand2_DonorVec(double f, const Population& pop);
 	Individual::GeneVec CurtogrBest_DonorVec(int target_idx, double p, double f, const Population& pop);
 };
-#endif // !ALG_mLSHADE__
 
+
+
+#endif // !CC_ML_SHADE__
 

@@ -43,7 +43,7 @@ void CC_alg::Setup(std::ifstream& CC_ifile, GroupsResult& all_groups, std::strin
 }
 
 
-Individual& CC_alg::Solve(const CProblem& prob)
+Individual CC_alg::Solve(const CProblem& prob)
 {
 	// Set log system and target problem
 
@@ -70,7 +70,7 @@ Individual& CC_alg::Solve(const CProblem& prob)
 	// Initialize Context vector
 	context_vector_ = Individual(prob.dim(), 0.0);
 
-	// TODO: randomly choose subcomponent gene from decomposers into context vector
+	// Randomly choose subcomponent gene from decomposers into context vector
 	for (int i = 0; i < decomposers_.size(); i += 1)
 	{
 		int rand_pop_num = alg_math::randInt(0, pop_size_ - 1);
@@ -79,11 +79,12 @@ Individual& CC_alg::Solve(const CProblem& prob)
 			context_vector_.gene()[decomposers_[i].group()[j]] = decomposers_[i].population()[rand_pop_num][j];
 		}
 	}
-	// TODO: update the fitness of context vector
-	// ?????
+	// Evaluate context vector and update its fitness value
+	context_vector_.fitness() = fp->compute(context_vector_.gene());
+	++nFE_now;
 
 
-
+	
 	// CC evaluation
 	size_t cycle_cnt = 0;
 	while (nFE_now < MAX_nFE)
@@ -94,12 +95,13 @@ Individual& CC_alg::Solve(const CProblem& prob)
 		{
 			decomposers_[i].setMutationOperator(MutationOperator);
 
-			// TODO: Optimize each SubComponents
-			decomposers_[i].Optimize(optimizer_LearningPeriod_, prob, context_vector_, nFE_now, MAX_nFE);
-
-			// TODO: Update context vector gene and fitness
+			cout << "Decomposer[ " << i << "]   ";
+			// Optimize each SubComponents
+			context_vector_ = decomposers_[i].Optimize(optimizer_LearningPeriod_, prob, fp, context_vector_, nFE_now, decomposers_.size());
+			
+			//cout << "Group " << i << "  ,nFE = " << nFE_now << endl;			
 		}
 	}
-
+	
 	return context_vector_;
 }

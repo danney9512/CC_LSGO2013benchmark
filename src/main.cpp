@@ -34,7 +34,7 @@ int main()
 {
 	// Set random seed
 	// 設定隨機種子
-	//srand(time(0));
+	srand(time(0));
 
 	// Load problem and experiment setting //
 	// 載入 問題函式列表
@@ -156,12 +156,11 @@ int main()
 			CC -> Setup(algo_para_ini, groupingResult, optimizer_name, optimizer_ini_str);
 
 
-
-			//string result_filename = algo_name + optimizer_name + "-" + grouping_name + "_F" + IntToStr(problem_id, 2) + "_D" + IntToStr(prob_set[problem_id - 1].dim(), 2) + ".csv";
+			//string result_filename = algo_name + "_F" + IntToStr(problem_id, 2) + "_D" + IntToStr(prob_set[problem_id - 1].dim(), 2) + ".csv";
 			//Result result(problem_id, NumOfRuns, result_filename);
-			/*
+
 			START = clock();
-			// Running CCEA in parallel
+			// Running EA
 			omp_set_dynamic(0);			// Explicitly disable dynamic teams
 			omp_set_num_threads(4);		// Set num of thread
 			#pragma omp parallel
@@ -171,32 +170,28 @@ int main()
 				{
 					// Set random seed for each run
 					time_t t_run = run;
-					srand(time(&t_run));
-	
+					srand(time(&t_run) ^ omp_get_thread_num());
+
 					// Setting EA evolve parameters
 					Log::set_k((int)run);
-					Individual solutions;
+					Individual best_solution;
 
 					// CC optimize
-					//ea->Solve(&solutions, prob_set[problem_id - 1]);
-				
+					best_solution = CC->Solve(prob_set[problem_id - 1]);
+
 					// CC result for each run
 					//result[run] = solutions.fitness();
-					cout << "Run " << run << ", best fitness: " << solutions.fitness() << endl;
+					cout << "Run " << run << ", best fitness: " << best_solution.fitness() << endl;
 				}
 			}
 			END = clock();
 
-			result.compute(prob_set[problem_id - 1].global_optimum());
-			result.outputToFile(prob_set[problem_id - 1].global_optimum());
-			result.close();
-			
+			//result.compute(prob_set[problem_id - 1].global_optimum());
+			//result.outputToFile(prob_set[problem_id - 1].global_optimum());
+			//result.close();
 
-			cout << "Experiment " << i + 1 << " ended." << " Execution Time: " << (END - START) / CLOCKS_PER_SEC << " sec" << endl << endl;
-			*/
-			
-			
-			
+			cout << "Experiment " << exp_i + 1 << " ended." << " Execution Time: " << (END - START) / CLOCKS_PER_SEC << " sec" << endl << endl;
+
 		}
 
 		// ini file close

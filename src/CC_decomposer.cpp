@@ -1,8 +1,7 @@
 #include "CC_decomposer.h"
 #include "problem.h"
 #include "alg_math.h"
-#include "alg_L-SHADE.h"
-#include "alg_mL-SHADE.h"
+
 
 Decomposer::Decomposer(Group& g, const int pop_size)
 {
@@ -50,12 +49,17 @@ void Decomposer::SetupOptimizer(const std::string& optimizer_name, const std::st
 	std::ifstream optimizer_ifile(optimizer_path);
 	if (optimizer_name == "mL-SHADE")
 	{
-		optimizer_ = new mL_SHADE(maxFE);
+		optimizer_ = new CC_mL_SHADE(pop_size_, maxFE);
 
 		if (!optimizer_ifile)
+		{
 			return;
+		}
 		else
+		{
 			optimizer_->Setup(optimizer_ifile);
+		}
+			
 	}
 	optimizer_ifile.close();
 }
@@ -76,13 +80,17 @@ void Decomposer::PopulationInitialization(const CProblem& prob)
 	}
 }
 
-Individual& Decomposer::Optimize(const int iteration,const CProblem& prob, Individual& context_vec, unsigned long long int& nfe, const unsigned long long int& MAX_nFE)
+Individual Decomposer::Optimize(const int iteration, const CProblem& prob, Benchmarks* objfunction,  Individual& context_vec, unsigned long long int& nfe, const size_t num_deps)
 {
-	// TODO: 真正 mL-SHADE 在執行的地方
-	optimizer_->Solve(context_vec, group_, population_, prob, iteration, pop_size_, nfe, MAX_nFE);
-	// TODO: 預留 多個 不同的 Mutation operator
+	// record the nfe value of each decomposer
+	unsigned long long int nfe_before_optimize = nfe;
+	
+	// Running optimizer mL-SHADE
+	Individual new_context_vector;
+	new_context_vector = optimizer_->Solve(context_vec, group_, population_, prob, objfunction, iteration, nfe, used_nfe_, num_deps);
 
-
-	return context_vec;
+	used_nfe_ = nfe - nfe_before_optimize;
+	
+	return new_context_vector;
 }
 

@@ -1,4 +1,4 @@
-#include "alg_mL-SHADE.h"
+#include "CC_mL-SHADE.h"
 #include "alg_population.h"
 #include "alg_initialization.h"
 #include "alg_mutation.h"
@@ -8,8 +8,6 @@
 #include "alg_log.h"
 #include "CC_group.h"
 
-#include "2013LSGOBenchmarks/2013Benchmarks.h"
-
 #include <string>
 #include <cstdlib>
 #include <cmath>
@@ -18,10 +16,27 @@
 #include <climits>
 using namespace std;
 
-//-------------------------------
-// mL-SHADE
-//-------------------------------
-void mL_SHADE::Setup(std::ifstream &ifile)
+CC_mL_SHADE::CC_mL_SHADE(const size_t NP, const unsigned long long int maxFE)
+{ 
+	p_ = 0.11;
+	rarc_ = 2.6;
+	finit_ = 0.5;
+	crinit_ = 0.5;
+	scalemax_ = 0.2;
+	h_ = 6;
+	rNinit_ = 18;
+	nmin_ = 4;
+	
+	name_ = "mL-SHADE";
+	max_nfe_ = maxFE;
+
+	NP_ = NP;
+	A_ = (size_t)(NP_ * rarc_);
+
+	memory_sys_ = MemorySystem(h_);
+}
+
+void CC_mL_SHADE::Setup(std::ifstream& ifile)
 {
 	if (!ifile) return;
 
@@ -30,16 +45,25 @@ void mL_SHADE::Setup(std::ifstream &ifile)
 	ifile >> dummy >> dummy >> name_;
 	ifile >> dummy >> dummy >> rNinit_;
 	ifile >> dummy >> dummy >> nmin_;
-	//ifile >> dummy >> dummy >> max_nfe_;	// 已被拿出去
 	ifile >> dummy >> dummy >> finit_;
 	ifile >> dummy >> dummy >> crinit_;
 	ifile >> dummy >> dummy >> rarc_;
 	ifile >> dummy >> dummy >> p_;
 	ifile >> dummy >> dummy >> h_;
 	ifile >> dummy >> dummy >> scalemax_;
+
+	// Initialize Memory Ststem
+	memory_sys_ = MemorySystem(h_);
+	for (size_t i = 0; i < h_; ++i)
+	{
+		memory_sys_[i] = Memory(finit_, crinit_);
+	}
+
+	// Initialize Population and Archive
+	A_ = (size_t)(NP_ * rarc_);
 }
 
-void mL_SHADE::MemorySystem::update_memory(const std::vector<Memory> &success_parameter, const std::vector<double> &success_fit_dif)
+void CC_mL_SHADE::MemorySystem::update_memory(const std::vector<Memory>& success_parameter, const std::vector<double>& success_fit_dif)
 {
 	if (success_parameter.size() != 0)
 	{
@@ -70,7 +94,7 @@ void mL_SHADE::MemorySystem::update_memory(const std::vector<Memory> &success_pa
 	}
 }
 
-void mL_SHADE::MemorySystem::pertub_memory()
+void CC_mL_SHADE::MemorySystem::pertub_memory()
 {
 	memories_[k_].F() = alg_math::randDouble(0.0, 1.0);
 	memories_[k_].CR() = alg_math::randDouble(0.0, 1.0);
@@ -78,29 +102,28 @@ void mL_SHADE::MemorySystem::pertub_memory()
 	if (k_ >= h_) k_ = 0;
 }
 
-void mL_SHADE::Solve(Individual& context_vec, const Group& group, const vector<vector<double>>& population, const CProblem& prob, const int iteration, const int pop_size, unsigned long long int& nfe, const unsigned long long int max_nFE)
+
+Individual CC_mL_SHADE::Solve(const Individual& context_vec, const Group& group, std::vector<std::vector<double>>& population, const CProblem& prob, Benchmarks* fp, const int iteration, unsigned long long int& nfe, unsigned long long int used_nfe, const size_t num_deps)
 {
 	// Set log system and target problem 
 	//Log log(name() + '_' + to_string(prob.id()) + "_D" + to_string(prob.dim()) + "_" + prob.name(), max_nfe_, prob.dim(), prob.global_optimum());
+
 	Individual::SetTargetProblem(prob);
 
 	// Set parameter and random generator
-	//const size_t NPinit = (size_t) round(prob.dim() * rNinit_), Gene_Len = prob.dim(), H = h_, Nmin = nmin_;
-	const size_t NPinit = (size_t)pop_size, Gene_Len = prob.dim(), H = h_, Nmin = nmin_;
-	const unsigned long long int Max_NFE = max_nFE;
+	unsigned long long int nfe_local = 0;	// record the nfe number in this optimizer
+	const size_t Gene_Len = prob.dim(), Nmin = nmin_, H = h_;
+	size_t NP = NP_;
+
+	const unsigned long long int Max_NFE = max_nfe_;
 	int cur_iteration = 0;
-	//unsigned long long int nfe = 0;
-	size_t NP = NPinit, A = (size_t)(NPinit * rarc_);
+
 	const double pbest = p_, ub = prob.upper_bound(), lb = prob.lower_bound(), scalemax = scalemax_;
 	std::default_random_engine generator;
+	
 
-	// Create Benchmark function
-	Benchmarks* fp = generateFuncObj(prob.id(), prob.lower_bound(), prob.upper_bound(), prob.dim());
-	fp->nextRun();
-
-	// Initialize and evaluate population  
+	// Initialize and evaluate population in this stage
 	Population pop(NP), archive_pop, children(NP);
-	//RandomInitialization(&pop, prob);
 	for (int i = 0; i < NP; i += 1)
 	{
 		pop[i] = context_vec;
@@ -116,27 +139,23 @@ void mL_SHADE::Solve(Individual& context_vec, const Group& group, const vector<v
 	{
 		pop[i].fitness() = fp->compute(pop[i].gene());
 		++nfe;
+		++nfe_local;
 	}
 	pop.sort();
 
-	// Initialize memory system
-	MemorySystem memory_sys(H);
-	for (size_t i = 0; i < H; ++i) memory_sys[i] = Memory(finit_, crinit_);
+
+	// Initialize memory sample system
 	std::vector<Memory> sample_parameter, success_parameter;
 	std::vector<double> success_fit_dif;
+	
 
 	// Set variables for terminal criteria
 	bool stop_flag = false;
 	size_t stop_idx = 0, no_success_cnt = 0, max_no_success_cnt = 0, perturb_cnt = 0, total_no_success = 0;
 
-	//log.store(&pop, memory_sys, sample_parameter, success_parameter, (int)nfe);
-
-	constexpr int bestFitness_log_cycle = 20;
-	//size_t cycle_cnt = 0;
 
 	while (cur_iteration < iteration && nfe < Max_NFE)
 	{
-		//cycle_cnt += 1;
 		cur_iteration += 1;
 
 		sample_parameter.clear();
@@ -147,31 +166,34 @@ void mL_SHADE::Solve(Individual& context_vec, const Group& group, const vector<v
 			success_fit_dif.clear();
 		}
 
-		// For each individual in current popultaion
-		for (size_t i = 0; i < NP; ++i)
+		// For each subcomponts in current popultaion
+		for (size_t i = 0; i < NP; i += 1)
 		{
 			// Generate CRi and Fi
 			int r = alg_math::randInt(0, (int)(H - 1));
 
 			double CRi;
-			if (memory_sys[r].CR() == -1.0)	CRi = 0.0;
+			if (memory_sys_[r].CR() == -1.0)	
+				CRi = 0.0;
 			else
 			{
-				std::normal_distribution<double> randn(memory_sys[r].CR(), 0.1);
+				std::normal_distribution<double> randn(memory_sys_[r].CR(), 0.1);
 				CRi = std::min(1.0, std::max(0.0, randn(generator)));
 			}
 
-			std::cauchy_distribution<double> randc(memory_sys[r].F(), 0.1);
+			std::cauchy_distribution<double> randc(memory_sys_[r].F(), 0.1);
 			double Fi = randc(generator);
 			while (Fi <= 0.0) Fi = randc(generator);
 			if (Fi > 1.0) Fi = 1.0;
 
+
 			sample_parameter.push_back(Memory(Fi, CRi));
 
-			// cur-to-pbest mutation
+
+			// DE Mutation
 			Individual::GeneVec donor_vector;
-			//donor_vector = CurtopBest_DonorVec((int)i, pbest, Fi, pop, archive_pop);
-			donor_vector = CurtopBest_DonorVec(group[i], pbest, Fi, pop, archive_pop);
+			donor_vector = CurtopBest_DonorVec((int)i, pbest, Fi, pop, archive_pop);
+
 
 			// DE crossover
 			int R = alg_math::randInt(0, (int)(Gene_Len - 1));
@@ -187,14 +209,12 @@ void mL_SHADE::Solve(Individual& context_vec, const Group& group, const vector<v
 			children[i].fitness() = fp->compute(children[i].gene());
 
 			++nfe;
-
+			++nfe_local;
+			
 			if (nfe >= Max_NFE)
 			{
 				stop_flag = true;
 				stop_idx = i;
-
-				//log.store_errorvalue(&pop);
-				//log.store_bestfitness(&pop, (int)nfe);
 				break;
 			}
 		}
@@ -215,16 +235,19 @@ void mL_SHADE::Solve(Individual& context_vec, const Group& group, const vector<v
 				pop[i] = children[i];
 			}
 		}
-		// Resize archive 
-		if (archive_pop.size() > A)
+
+		// Resize archive
+		if (archive_pop.size() > A_)
 		{
 			archive_pop.shuffle();
-			archive_pop.resize(A);
+			archive_pop.resize(A_);
 		}
+
 		// Using the success individuals' F and CR to calculate the new lehmer mean
 		if (success_parameter.size() > 0)
 		{
-			memory_sys.update_memory(success_parameter, success_fit_dif);
+			// Update success history memory
+			memory_sys_.update_memory(success_parameter, success_fit_dif);
 			total_no_success += no_success_cnt;
 			no_success_cnt = 0;
 		}
@@ -236,7 +259,7 @@ void mL_SHADE::Solve(Individual& context_vec, const Group& group, const vector<v
 			// Memory pertubation
 			if (alg_math::randDouble(0.0, 1.0) <= no_success_cnt * 1.0 / nfe)
 			{
-				memory_sys.pertub_memory();
+				memory_sys_.pertub_memory();
 				++perturb_cnt;
 				// Reset the counter
 				total_no_success += no_success_cnt;
@@ -244,48 +267,38 @@ void mL_SHADE::Solve(Individual& context_vec, const Group& group, const vector<v
 			}
 		}
 
-		// LPSR
-		NP = (size_t)round(((1.0 * (int)(Nmin - NPinit) / (double)Max_NFE) * nfe) + NPinit);
-		A = (size_t)NP * rarc_;
+		// LPSR, Linear Population Size Reduction
+		NP_ = (size_t)round(((1.0 * (int)(Nmin - NP) / (double)(Max_NFE / num_deps)) * (nfe_local + used_nfe)) + NP);
+		A_ = (size_t)NP * rarc_;
+
+		cout << "NP = " << NP << endl;
 
 		pop.sort();
 		pop.resize(NP);
-		if (archive_pop.size() > A)
+		if (archive_pop.size() > A_)
 		{
 			archive_pop.shuffle();
-			archive_pop.resize(A);
+			archive_pop.resize(A_);
 		}
-
-
-		// Log data output
-		/*
-		if (log.LSGO2013_record_point((int)nfe))
-		{
-			log.store_errorvalue(&pop);
-		}
-		if (cycle_cnt % bestFitness_log_cycle == 0 || nfe >= Max_NFE)
-		{
-			log.store_bestfitness(&pop, (int)nfe);
-		}*/
-
-		//log.store(&pop, memory_sys, sample_parameter, success_parameter, (int)nfe);
-		//log.store_pop(&pop, &archive_pop, (int)nfe);
-
-
-		// Terminate process when 10 points are found
-		//if (CEC2019_100Digit_Score(&pop[0], prob.global_optimum()) >= 10) break;
 	}
 	pop.sort();
 
-	//update context vector
-	context_vec = pop[0];
-
-	//std::cout << "MNSC : " << max_no_success_cnt << " / LNSC : " << no_success_cnt << " / TNSC : " << total_no_success <<" ";
-	//*solutions = pop;
-	//log.close();
+	// return the evolved population back to subcomponent's population
+	population.resize(NP);
+	for (size_t i = 0; i < population.size(); ++i)
+	{
+		for (int j = 0; j < population[i].size(); j += 1)
+		{
+			population[i][j] = pop[i].gene()[group[j]];
+		}
+	}
+	
+	// return new context vector
+	return pop[0];
 }
 
-Individual::GeneVec mL_SHADE::CurtopBest_DonorVec(int target_idx, double p, double f, const Population& pop, const Population& archive)
+
+Individual::GeneVec CC_mL_SHADE::CurtopBest_DonorVec(int target_idx, double p, double f, const Population& pop, const Population& archive)
 {
 	size_t Pop_Size = pop.size();
 	int best_idx_max = round(Pop_Size * p);
@@ -313,7 +326,7 @@ Individual::GeneVec mL_SHADE::CurtopBest_DonorVec(int target_idx, double p, doub
 	return donor_vector;
 }
 
-Individual::GeneVec mL_SHADE::Rand2_DonorVec(double f, const Population& pop)
+Individual::GeneVec CC_mL_SHADE::Rand2_DonorVec(double f, const Population& pop)
 {
 	size_t Pop_Size = pop.size();
 
@@ -346,7 +359,7 @@ Individual::GeneVec mL_SHADE::Rand2_DonorVec(double f, const Population& pop)
 	return donor_vector;
 }
 
-Individual::GeneVec mL_SHADE::CurtogrBest_DonorVec(int target_idx, double p, double f, const Population& pop)
+Individual::GeneVec CC_mL_SHADE::CurtogrBest_DonorVec(int target_idx, double p, double f, const Population& pop)
 {
 	size_t Pop_Size = pop.size();
 	int p_pop_size = round(Pop_Size * p);
