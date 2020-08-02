@@ -79,7 +79,8 @@ private:
 
 	MemorySystem memory_sys_;
 
-	size_t NP_,
+	size_t NP_init_, 
+		NP_,
 		A_;
 	
 	Individual::GeneVec CurtopBest_DonorVec(int target_idx, double p, double f, const Population& pop, const Population& archive);

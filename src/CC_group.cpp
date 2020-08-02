@@ -4,6 +4,11 @@
 #include <fstream>
 #include <filesystem>
 
+Group::Group(const Group& g)
+{
+	x_index_ = g.x_index_;
+	group_name_ = g.group_name_;
+}
 
 Group::Group(const int index)
 {
@@ -15,6 +20,16 @@ Group::Group(std::vector<int>& index_arr)
 {
 	x_index_ = index_arr;
 	group_name_ = "";
+}
+
+
+GroupsResult::GroupsResult(const GroupsResult& gp)
+{
+	nonsep_groups_ = gp.nonsep_groups_;
+	sep_groups_ = gp.sep_groups_;
+	problem_id_ = gp.problem_id_;
+	grouping_name_ = gp.grouping_name_;
+	num_FE_cost_ = gp.num_FE_cost_;
 }
 
 void GroupsResult::outputToFile(const std::string& grouping_algName)const

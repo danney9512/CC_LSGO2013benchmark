@@ -30,6 +30,7 @@ CC_mL_SHADE::CC_mL_SHADE(const size_t NP, const unsigned long long int maxFE)
 	name_ = "mL-SHADE";
 	max_nfe_ = maxFE;
 
+	NP_init_ = NP;
 	NP_ = NP;
 	A_ = (size_t)(NP_ * rarc_);
 
@@ -111,7 +112,7 @@ Individual CC_mL_SHADE::Solve(const Individual& context_vec, const Group& group,
 	// Set parameter and random generator
 	unsigned long long int nfe_local = 0;	// record the nfe number in this optimizer
 	const size_t Gene_Len = prob.dim(), Nmin = nmin_, H = h_;
-	size_t NP = NP_;
+	size_t NP_first = NP_;
 
 	const unsigned long long int Max_NFE = max_nfe_;
 	int cur_iteration = 0;
@@ -121,19 +122,19 @@ Individual CC_mL_SHADE::Solve(const Individual& context_vec, const Group& group,
 	
 
 	// Initialize and evaluate population in this stage
-	Population pop(NP), archive_pop, children(NP);
-	for (int i = 0; i < NP; i += 1)
+	Population pop(NP_first), archive_pop, children(NP_init_);
+	for (size_t i = 0; i < NP_first; ++i)
 	{
 		pop[i] = context_vec;
 	}
-	for (int i = 0; i < population.size(); i += 1)
+	for (size_t i = 0; i < population.size(); ++i)
 	{
-		for (int j = 0; j < population[i].size(); j += 1)
+		for (size_t j = 0; j < population[i].size(); ++j)
 		{
 			pop[i].gene()[group[j]] = population[i][j];
 		}
 	}
-	for (size_t i = 0; i < NP; ++i)
+	for (size_t i = 0; i < NP_first; ++i)
 	{
 		pop[i].fitness() = fp->compute(pop[i].gene());
 		++nfe;
@@ -141,6 +142,11 @@ Individual CC_mL_SHADE::Solve(const Individual& context_vec, const Group& group,
 	}
 	pop.sort();
 
+	if (nfe >= Max_NFE)
+	{
+		return pop[0];
+	}
+		
 
 	// Initialize memory sample system
 	std::vector<Memory> sample_parameter, success_parameter;
@@ -165,7 +171,7 @@ Individual CC_mL_SHADE::Solve(const Individual& context_vec, const Group& group,
 		}
 
 		// For each subcomponts in current popultaion
-		for (size_t i = 0; i < NP; i += 1)
+		for (size_t i = 0; i < NP_; ++i)
 		{
 			// Generate CRi and Fi
 			int r = alg_math::randInt(0, (int)(H - 1));
@@ -218,7 +224,7 @@ Individual CC_mL_SHADE::Solve(const Individual& context_vec, const Group& group,
 		}
 
 		// DE Selection
-		for (size_t i = 0; i < NP; ++i)
+		for (size_t i = 0; i < NP_; ++i)
 		{
 			if (stop_flag && i > stop_idx) break;
 
@@ -251,7 +257,7 @@ Individual CC_mL_SHADE::Solve(const Individual& context_vec, const Group& group,
 		}
 		else
 		{
-			no_success_cnt += NP;
+			no_success_cnt += NP_;
 			if (max_no_success_cnt < no_success_cnt) max_no_success_cnt = no_success_cnt;
 
 			// Memory pertubation
@@ -266,8 +272,8 @@ Individual CC_mL_SHADE::Solve(const Individual& context_vec, const Group& group,
 		}
 
 		// LPSR, Linear Population Size Reduction
-		NP_ = (size_t)round(((1.0 * (int)(Nmin - NP) / (double)(Max_NFE / num_deps)) * (nfe_local + used_nfe)) + NP);
-		A_ = (size_t)NP * rarc_;
+		NP_ = (size_t)round(((1.0 * (int)(Nmin - NP_init_) / (double)(Max_NFE / num_deps)) * (nfe_local + used_nfe)) + NP_init_);
+		A_ = (size_t)NP_ * rarc_;
 
 		pop.sort();
 		pop.resize(NP_);
@@ -286,7 +292,7 @@ Individual CC_mL_SHADE::Solve(const Individual& context_vec, const Group& group,
 	population.resize(NP_);
 	for (size_t i = 0; i < population.size(); ++i)
 	{
-		for (int j = 0; j < population[i].size(); j += 1)
+		for (size_t j = 0; j < population[i].size(); ++j)
 		{
 			population[i][j] = pop[i].gene()[group[j]];
 		}
@@ -330,7 +336,7 @@ Individual::GeneVec CC_mL_SHADE::Rand2_DonorVec(double f, const Population& pop)
 	size_t Pop_Size = pop.size();
 
 	std::vector<int> shuffle_vec(Pop_Size, 0);
-	for (int i = 0; i < Pop_Size; i += 1)
+	for (int i = 0; i < Pop_Size; ++i)
 	{
 		shuffle_vec[i] = i;
 	}
@@ -373,7 +379,7 @@ Individual::GeneVec CC_mL_SHADE::CurtogrBest_DonorVec(int target_idx, double p, 
 	std::shuffle(shuffle_vec.begin(), shuffle_vec.end(), std::default_random_engine(seed));
 
 	int x_grbest = p_pop_size;
-	for (int i = 0; i < p_pop_size; i += 1)
+	for (int i = 0; i < p_pop_size; ++i)
 	{
 		if (shuffle_vec[i] != target_idx)
 			x_grbest = std::min(x_grbest, shuffle_vec[i]);
@@ -381,7 +387,7 @@ Individual::GeneVec CC_mL_SHADE::CurtogrBest_DonorVec(int target_idx, double p, 
 
 	std::shuffle(shuffle_vec.begin(), shuffle_vec.end(), std::default_random_engine(seed));
 	int	x_r1 = 0;
-	for (int i = 0; i < Pop_Size; i += 1)
+	for (int i = 0; i < Pop_Size; ++i)
 	{
 		if (shuffle_vec[i] != x_grbest && shuffle_vec[i] != target_idx)
 		{
@@ -391,7 +397,7 @@ Individual::GeneVec CC_mL_SHADE::CurtogrBest_DonorVec(int target_idx, double p, 
 	}
 
 	int x_r2 = 0;
-	for (int i = 0; i < Pop_Size; i += 1)
+	for (int i = 0; i < Pop_Size; ++i)
 	{
 		if (shuffle_vec[i] != x_grbest && shuffle_vec[i] != target_idx && shuffle_vec[i] != x_r1)
 		{

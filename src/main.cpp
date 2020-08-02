@@ -51,9 +51,9 @@ int main()
 
 	// Define variables
 	// 宣告實驗變數
-	constexpr int NumOfRuns = 1;
+	constexpr int NumOfRuns = 25;
 
-	CC_alg* CC = nullptr;
+	//CC_alg* CC = nullptr;
 
 	string algo_name, algo_ini_str, grouping_name, optimizer_name, CB_name, optimizer_ini_str;
 	size_t problem_id = 0;
@@ -92,7 +92,7 @@ int main()
 			}
 
 			// Construct CC
-			CC = new CC_alg(groupingResult.FFE_cost(), exp_set[exp_i]);
+			//CC = new CC_alg(groupingResult.FFE_cost(), exp_set[exp_i]);
 
 
 			/*
@@ -153,21 +153,33 @@ int main()
 			double START, END;
 
 			// Algorithm parameter's setting
-			CC -> Setup(algo_para_ini, groupingResult, optimizer_name, optimizer_ini_str);
+			//CC -> Setup(algo_para_ini, groupingResult, optimizer_name, optimizer_ini_str);
 
 			string algo_fullName = algo_name + optimizer_name + "-" + grouping_name + "-" + CB_name;
 			string result_filename = algo_fullName + "_F" + IntToStr(problem_id, 2) + "_D" + IntToStr(prob_set[problem_id - 1].dim(), 2) + ".csv";
 			Result result(problem_id, NumOfRuns, result_filename);
 
+			//cout << groupingResult.sep_groups().size() << endl;
+			//cout << groupingResult.nonsep_groups().size() << endl;
+
 			START = clock();
-			// Running EA
+			// Running CCEA
 			omp_set_dynamic(0);			// Explicitly disable dynamic teams
-			omp_set_num_threads(4);		// Set num of thread
+			omp_set_num_threads(5);		// Set num of thread
 			#pragma omp parallel
 			{
 				#pragma omp for 
 				for (int run = 0; run < NumOfRuns; run += 1)
 				{
+					ifstream CC_para_ini(algo_ini_str);
+					GroupsResult groupingResult_run(groupingResult);
+
+					// Construct CC
+					CC_alg CC(groupingResult.FFE_cost(), exp_set[exp_i]);
+
+					// CC parameter's setting
+					CC.Setup(CC_para_ini, groupingResult_run, optimizer_name, optimizer_ini_str);
+
 					// Set random seed for each run
 					time_t t_run = run;
 					srand(time(&t_run) ^ omp_get_thread_num());
@@ -177,11 +189,13 @@ int main()
 					Individual best_solution;
 
 					// CC optimize
-					best_solution = CC->Solve(prob_set[problem_id - 1]);
+					best_solution = CC.Solve(prob_set[problem_id - 1]);
 
 					// CC result for each run
 					result[run] = best_solution.fitness();
 					cout << "Run " << run << ", best fitness: " << best_solution.fitness() << endl;
+
+					CC_para_ini.close();
 				}
 			}
 			END = clock();
@@ -199,8 +213,8 @@ int main()
 		optimizer_para_ini.close();
 
 		// Destructor
-		if (CC != nullptr)
-			delete CC;
+		//if (CC != nullptr)
+			//delete CC;
 	}
 
 	allExp_END = clock();

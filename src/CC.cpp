@@ -17,7 +17,7 @@ CC_alg::CC_alg(const unsigned long long int used_nfe, Experiment& exp)
 	alg_name_ = "CC" + optimizer_name_ + "-" + grouping_name_ + "-" + CB_name_;
 }
 
-void CC_alg::Setup(std::ifstream& CC_ifile, GroupsResult& all_groups, std::string& optimizer_name, const std::string& optimizer_path)
+void CC_alg::Setup(std::ifstream& CC_ifile, GroupsResult& all_groups, const std::string& optimizer_name, const std::string& optimizer_path)
 {
 	if (!CC_ifile) return;
 
@@ -45,7 +45,6 @@ void CC_alg::Setup(std::ifstream& CC_ifile, GroupsResult& all_groups, std::strin
 	{
 		decomposers_[i].SetupOptimizer(optimizer_name, optimizer_path, max_nFE_);
 	}
-	
 }
 
 
@@ -91,35 +90,36 @@ Individual CC_alg::Solve(const CProblem& prob)
 	
 	
 	// CC evaluation
-	constexpr int bestFitness_log_cycle = 5;
+	constexpr size_t bestFitness_log_cycle = 5;
 	size_t cycle_cnt = 0;
 	while (nFE_now < MAX_nFE)
 	{
 		cycle_cnt += 1;
 
-		for (int i = 0; i < decomposers_.size(); ++i)
+		for (size_t i = 0; i < decomposers_.size(); ++i)
 		{
 			decomposers_[i].setMutationOperator(MutationOperator);
 
-			//cout << "Decomposer[ " << i << "]   ";
 			// Optimize each SubComponents
 			context_vector_ = decomposers_[i].Optimize(optimizer_LearningPeriod_, prob, fp, context_vector_, nFE_now, decomposers_.size());
 			
+			if (nFE_now >= MAX_nFE)
+			{
+				log.store_errorvalue(context_vector_);
+				log.store_bestfitness(context_vector_, i, MAX_nFE);
+				break;
+			}
+
 			// Log data output
 			if (log.LSGO2013_record_point((int)nFE_now))
 			{
 				log.store_errorvalue(context_vector_);
 			}
-			if (cycle_cnt % bestFitness_log_cycle == 0 || nFE_now >= MAX_nFE)
+			if (cycle_cnt % bestFitness_log_cycle == 0)
 			{
 				log.store_bestfitness(context_vector_, i, nFE_now);
 			}
-			
 
-			if (nFE_now > MAX_nFE)
-			{
-				break;
-			}
 
 			//cout << "Group " << i << "  ,nFE = " << nFE_now << endl;			
 		}

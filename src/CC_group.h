@@ -10,6 +10,7 @@ class Group
 {
 public:
 	Group(){}
+	Group(const Group& g);
 	explicit Group(const int index);
 	explicit Group(std::vector<int>& index_arr);
 
@@ -71,6 +72,9 @@ private:
 class GroupsResult
 {
 public:
+	GroupsResult() {}
+	explicit GroupsResult(const GroupsResult& gp);
+
 	const int problem_ID() const { return problem_id_; }
 	const std::string& grouping_alg() const { return grouping_name_; }
 	const unsigned long long int FFE_cost() const { return num_FE_cost_; }
