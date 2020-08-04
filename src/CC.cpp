@@ -30,17 +30,17 @@ void CC_alg::Setup(std::ifstream& CC_ifile, GroupsResult& all_groups, const std:
 	int sep_num = all_groups.sep_groups().size();
 	int nonsep_num = all_groups.nonsep_groups().size();
 
-	for (int i = 0; i < sep_num; ++i)
-	{
-		Decomposer dp(all_groups.sep_groups()[i], pop_size_);
-		decomposers_.push_back(dp);
-	}
 	for (int i = 0; i < nonsep_num; ++i)
 	{
 		Decomposer dp(all_groups.nonsep_groups()[i], pop_size_);
 		decomposers_.push_back(dp);
 	}
-	
+	for (int i = 0; i < sep_num; ++i)
+	{
+		Decomposer dp(all_groups.sep_groups()[i], pop_size_);
+		decomposers_.push_back(dp);
+	}
+
 	for (size_t i = 0; i < decomposers_.size(); ++i)
 	{
 		decomposers_[i].SetupOptimizer(optimizer_name, optimizer_path, max_nFE_);
@@ -90,7 +90,7 @@ Individual CC_alg::Solve(const CProblem& prob)
 	
 	
 	// CC evaluation
-	constexpr size_t bestFitness_log_cycle = 5;
+	constexpr size_t bestFitness_log_cycle = 1;
 	size_t cycle_cnt = 0;
 	while (nFE_now < MAX_nFE)
 	{

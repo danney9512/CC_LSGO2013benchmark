@@ -89,7 +89,7 @@ Individual Decomposer::Optimize(const int iteration, const CProblem& prob, Bench
 	Individual new_context_vector;
 	new_context_vector = optimizer_->Solve(context_vec, group_, population_, prob, objfunction, iteration, nfe, used_nfe_, num_deps);
 
-	used_nfe_ = nfe - nfe_before_optimize;
+	used_nfe_ = used_nfe_ + (nfe - nfe_before_optimize);
 	
 	return new_context_vector;
 }
