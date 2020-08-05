@@ -59,7 +59,7 @@ public:
 		return new_group;
 	}
 
-	void setname(std::string& name) { group_name_ = name; }
+	void setname(const std::string& name) { group_name_ = name; }
 	void push_back(const int& index) { x_index_.push_back(index); }
 	bool empty() const { return x_index_.size() == 0; }
 	void clear() { x_index_.clear(); group_name_ = ""; }
