@@ -37,7 +37,9 @@ CC_mL_SHADE::CC_mL_SHADE(const size_t NP, const unsigned long long int maxFE)
 
 	memory_sys_ = MemorySystem(h_);
 
-	NP_op_ = std::vector<size_t>{ NP / 3,NP / 3,NP - (NP / 3) * 2 };
+	multi_operator_num_ = 3;
+
+	NP_op_ = std::vector<size_t>{ NP / multi_operator_num_,NP / multi_operator_num_,NP - (NP / multi_operator_num_) * (multi_operator_num_ - 1) };
 }
 
 void CC_mL_SHADE::Setup(std::ifstream& ifile)
@@ -118,6 +120,9 @@ double EuclideanDistance(const Individual& ind1, const Individual& ind2)
 
 void CC_mL_SHADE::DEStrategy(const Population& bigpop, Population& pop, Population& archive_pop, std::vector<Memory>& sample_parameter, std::vector<Memory>& success_parameter, std::vector<double>& success_fit_dif, Benchmarks* fp, unsigned long long int& nfe, unsigned long long int& nfe_local, const string& mut_opt, const CProblem& prob)
 {
+	if (pop.size() == 0)
+		return;
+
 	const double pbest = p_, ub = prob.upper_bound(), lb = prob.lower_bound(), scalemax = scalemax_;
 	const size_t Gene_Len = prob.dim(), H = h_;
 	const unsigned long long int Max_NFE = max_nfe_;
@@ -161,10 +166,11 @@ void CC_mL_SHADE::DEStrategy(const Population& bigpop, Population& pop, Populati
 		Individual::GeneVec donor_vector;
 		if (mut_opt == "Cur-to-pbest")
 			donor_vector = CurtopBest_DonorVec((int)i, pbest, Fi, bigpop, archive_pop);
+		else if (mut_opt == "Cur-to-best")
+			donor_vector = CurtoBest_DonorVec((int)i, pbest, Fi, bigpop);
 		else if (mut_opt == "Cur-to-grbest")
 			donor_vector = CurtogrBest_DonorVec((int)i, pbest, Fi, bigpop);
-		else if (mut_opt == "Rand2")
-			donor_vector = Rand2_DonorVec(Fi, bigpop);
+		
 
 		//cout << donor_vector.size() << endl;
 
@@ -229,12 +235,14 @@ Individual CC_mL_SHADE::Solve(const Individual& context_vec, const Group& group,
 	//std::default_random_engine generator;
 	
 	// Set multiple mutatiion operator
-	std::string mut_opt = "Cur-to-pbest";
+	//std::string mut_opt = "Cur-to-pbest";
 	enum Mutation_opt
-	{	Cur_to_pbest, 
-		Cur_to_grbest, 
-		Rand2
+	{	Cur_to_pbest,
+		Cur_to_best,
+		Cur_to_grbest
 	};
+	vector<string> mut_opt = { "Cur-to-pbest","Cur_to_best","Cur_to_grbest" };
+	const size_t multi_operator_num = multi_operator_num_;
 
 	// Initialize and evaluate population in this stage
 	Population pop(NP_first), archive_pop;	//children(NP_init_);
@@ -286,34 +294,46 @@ Individual CC_mL_SHADE::Solve(const Individual& context_vec, const Group& group,
 		}
 
 		//Initialize each multi-operator population
-		Population pop_cp(NP_op_[0]), pop_cg(NP_op_[1]), pop_r2(NP_op_[2]);
+		//Population pop_cp(NP_op_[0]), pop_cg(NP_op_[1]), pop_r2(NP_op_[2]);
+		vector<Population> pop_op(multi_operator_num);
+		for (int i = 0; i < multi_operator_num; i += 1)
+		{
+			pop_op[i] = Population(NP_op_[i]);
+		}
 		pop.shuffle();
 		for (size_t i = 0; i < NP_; ++i)
 		{
 			if (i < NP_op_[0])
-				pop_cp[i] = pop[i];
+				pop_op[0][i] = pop[i];
 			else if (i < (NP_op_[0] + NP_op_[1]))
-				pop_cg[i - NP_op_[0]] = pop[i];
+				pop_op[1][i - NP_op_[0]] = pop[i];
 			else
-				pop_r2[i - (NP_op_[0] + NP_op_[1])] = pop[i];
+				pop_op[2][i - (NP_op_[0] + NP_op_[1])] = pop[i];
 		}
-		pop_cp.sort();
-		pop_cg.sort();
-		pop_r2.sort();
+		for (int i = 0; i < multi_operator_num; i += 1)
+		{
+			pop_op[i].sort();
+		}
 
-		// For each subcomponts in current popultaion	
-		DEStrategy(pop, pop_cp, archive_pop, sample_parameter, success_parameter, success_fit_dif, fp, nfe, nfe_local, "Cur-to-pbest", prob);
-		DEStrategy(pop, pop_cg, archive_pop, sample_parameter, success_parameter, success_fit_dif, fp, nfe, nfe_local, "Cur-to-grbest", prob);
-		DEStrategy(pop, pop_r2, archive_pop, sample_parameter, success_parameter, success_fit_dif, fp, nfe, nfe_local, "Rand2", prob);
+
+
+		// For each subcomponts in current popultaion
+		for (int i = 0; i < multi_operator_num; i += 1)
+		{
+			DEStrategy(pop, pop_op[i], archive_pop, sample_parameter, success_parameter, success_fit_dif, fp, nfe, nfe_local, mut_opt[i], prob);
+		}
+		
+		//DEStrategy(pop, pop_cg, archive_pop, sample_parameter, success_parameter, success_fit_dif, fp, nfe, nfe_local, "Cur-to-grbest", prob);
+		//DEStrategy(pop, pop_r2, archive_pop, sample_parameter, success_parameter, success_fit_dif, fp, nfe, nfe_local, "Rand2", prob);
 
 		for (size_t i = 0; i < NP_; ++i)
 		{
 			if (i < NP_op_[0])
-				pop[i] = pop_cp[i];
+				pop[i] = pop_op[0][i];
 			else if (i < (NP_op_[0] + NP_op_[1]))
-				pop[i] = pop_cg[i - NP_op_[0]];
+				pop[i] = pop_op[1][i - NP_op_[0]];
 			else
-				pop[i] = pop_r2[i - (NP_op_[0] + NP_op_[1])];
+				pop[i] = pop_op[2][i - (NP_op_[0] + NP_op_[1])];
 		}
 		pop.sort();
 
@@ -349,37 +369,44 @@ Individual CC_mL_SHADE::Solve(const Individual& context_vec, const Group& group,
 		}
 
 		//calculate Diversity D_op
-		double D_cp = 0, D_cg = 0, D_r2 = 0;
-		for (size_t i = 1; i < pop_cp.size(); i += 1)
+		vector<double> Diversity(multi_operator_num, 0);
+		double D_sum = 0;
+		for (int i = 0; i < multi_operator_num; i += 1)
 		{
-			D_cp += EuclideanDistance(pop_cp[0], pop_cp[i]);
+			for (size_t j = 1; j < pop_op[i].size(); j += 1)
+			{
+				Diversity[i] += EuclideanDistance(pop_op[i][0], pop_op[i][j]);
+			}
+			Diversity[i] = Diversity[i] / pop_op[i].size();
+			D_sum += Diversity[i];
 		}
-		D_cp = D_cp / pop_cp.size();
-		for (size_t i = 1; i < pop_cg.size(); i += 1)
-		{
-			D_cg += EuclideanDistance(pop_cg[0], pop_cg[i]);
-		}
-		D_cg = D_cg / pop_cg.size();
-		for (size_t i = 1; i < pop_r2.size(); i += 1)
-		{
-			D_r2 += EuclideanDistance(pop_r2[0], pop_r2[i]);
-		}
-		D_r2 = D_r2 / pop_r2.size();
+		//double D_cp = 0, D_cg = 0, D_r2 = 0;
 
 		//calculate Diversity Rate
-		double DR_cp = D_cp / (D_cp + D_cg + D_r2);
-		double DR_cg = D_cg / (D_cp + D_cg + D_r2);
-		double DR_r2 = D_r2 / (D_cp + D_cg + D_r2);
+		vector<double> DR(multi_operator_num, 0);
+		for (int i = 0; i < multi_operator_num; i += 1)
+		{
+			DR[i] = Diversity[i] / D_sum;
+		}
 
 		//calculate solution quality
-		double QR_cp = pop_cp[0].fitness() / (pop_cp[0].fitness() + pop_cg[0].fitness() + pop_r2[0].fitness());
-		double QR_cg = pop_cg[0].fitness() / (pop_cp[0].fitness() + pop_cg[0].fitness() + pop_r2[0].fitness());
-		double QR_r2 = pop_r2[0].fitness() / (pop_cp[0].fitness() + pop_cg[0].fitness() + pop_r2[0].fitness());
+		vector<double> QR(multi_operator_num, 0);
+		double best_fitness_sum = 0;
+		for (int i = 0; i < multi_operator_num; i += 1)
+		{
+			best_fitness_sum += pop_op[i][0].fitness();
+		}
+		for (int i = 0; i < multi_operator_num; i += 1)
+		{
+			QR[i] = pop_op[i][0].fitness() / best_fitness_sum;
+		}
 
 		//calcualte improvement rate
-		double IRV_cp = (1 - QR_cp) + DR_cp;
-		double IRV_cg = (1 - QR_cg) + DR_cg;
-		double IRV_r2 = (1 - QR_r2) + DR_r2;
+		vector<double> IRV(multi_operator_num, 0);
+		for (int i = 0; i < multi_operator_num; i += 1)
+		{
+			IRV[i] = (1 - QR[i]) + DR[i];
+		}
 
 		// LPSR, Linear Population Size Reduction
 		if (group.name() == "separable")
@@ -389,10 +416,29 @@ Individual CC_mL_SHADE::Solve(const Individual& context_vec, const Group& group,
 		}
 		if (NP_ < Nmin) NP_ = Nmin;
 
-		NP_op_[0] = (size_t)(max(0.1, min(0.9, IRV_cp / (IRV_cp + IRV_cg + IRV_r2))) * NP_);
-		NP_op_[1] = (size_t)(max(0.1, min(0.9, IRV_cg / (IRV_cp + IRV_cg + IRV_r2))) * NP_);
-		NP_op_[2] = NP_ - NP_op_[0] - NP_op_[1];
-		if (NP_op_[2] < 0) NP_op_[2] = 0;
+		double IRV_sum = 0;
+		for (int i = 0; i < multi_operator_num; i += 1)
+		{
+			IRV_sum += IRV[i];
+		}
+
+		size_t cur_NP_sum = 0;
+		for (int i = 0; i < multi_operator_num; i += 1)
+		{
+			if (i != multi_operator_num - 1)
+			{
+				NP_op_[i] = (size_t)(max(0.1, min(0.9, IRV[i] / IRV_sum)) * NP_);
+				cur_NP_sum += NP_op_[i];
+			}
+			else
+			{
+				if (cur_NP_sum >= NP_)
+					NP_op_[i] = 0;
+				else
+					NP_op_[i] = NP_ - cur_NP_sum;
+			}
+		}
+			
 
 		pop.sort();
 		pop.resize(NP_);
@@ -441,6 +487,34 @@ Individual::GeneVec CC_mL_SHADE::CurtopBest_DonorVec(int target_idx, double p, d
 		g_best = pop[x_best].gene(),
 		g_r1 = pop[x_r1].gene(),
 		g_r2 = (x_r2 >= Pop_Size) ? archive[x_r2 - Pop_Size].gene() : pop[x_r2].gene();
+
+	Individual::GeneVec donor_vector(gene_len);
+	for (size_t j = 0; j < gene_len; ++j)
+	{
+		donor_vector[j] = g_cur[j] + f * (g_best[j] - g_cur[j] + g_r1[j] - g_r2[j]);
+	}
+	return donor_vector;
+}
+
+Individual::GeneVec CC_mL_SHADE::CurtoBest_DonorVec(int target_idx, double p, double f, const Population& pop)
+{
+	size_t Pop_Size = pop.size();
+	int best_idx_max = round(Pop_Size * p);
+	if (best_idx_max < 2) best_idx_max = 2;
+
+	int x_best = alg_math::randInt(0, best_idx_max - 1),
+		x_r1 = alg_math::randInt(0, (int)(Pop_Size - 1)),
+		x_r2 = alg_math::randInt(0, (int)(Pop_Size - 1));
+	while (x_r1 == target_idx || x_r2 == target_idx || x_r1 == x_r2)
+	{
+		x_r1 = rand() % Pop_Size;
+		x_r2 = rand() % Pop_Size;
+	}
+	size_t gene_len = pop[target_idx].gene().size();
+	Individual::GeneVec g_cur = pop[target_idx].gene(),
+		g_best = pop[x_best].gene(),
+		g_r1 = pop[x_r1].gene(),
+		g_r2 = pop[x_r2].gene();
 
 	Individual::GeneVec donor_vector(gene_len);
 	for (size_t j = 0; j < gene_len; ++j)
