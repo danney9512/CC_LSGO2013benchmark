@@ -91,7 +91,7 @@ private:
 	Individual::GeneVec CurtopBest_DonorVec(int target_idx, double p, double f, const Population& pop, const Population& archive);
 	Individual::GeneVec Rand2_DonorVec(double f, const Population& pop);
 	Individual::GeneVec CurtogrBest_DonorVec(int target_idx, double p, double f, const Population& pop);
-	Individual::GeneVec CurtoBest_DonorVec(int target_idx, double p, double f, const Population& pop);
+	Individual::GeneVec CurtoBest_DonorVec(int target_idx, double f, const Population& pop);
 };
 
 

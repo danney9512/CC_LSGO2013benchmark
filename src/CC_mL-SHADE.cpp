@@ -167,7 +167,7 @@ void CC_mL_SHADE::DEStrategy(const Population& bigpop, Population& pop, Populati
 		if (mut_opt == "Cur-to-pbest")
 			donor_vector = CurtopBest_DonorVec((int)i, pbest, Fi, bigpop, archive_pop);
 		else if (mut_opt == "Cur-to-best")
-			donor_vector = CurtoBest_DonorVec((int)i, pbest, Fi, bigpop);
+			donor_vector = CurtoBest_DonorVec((int)i, Fi, bigpop);
 		else if (mut_opt == "Cur-to-grbest")
 			donor_vector = CurtogrBest_DonorVec((int)i, pbest, Fi, bigpop);
 		
@@ -323,8 +323,6 @@ Individual CC_mL_SHADE::Solve(const Individual& context_vec, const Group& group,
 			DEStrategy(pop, pop_op[i], archive_pop, sample_parameter, success_parameter, success_fit_dif, fp, nfe, nfe_local, mut_opt[i], prob);
 		}
 		
-		//DEStrategy(pop, pop_cg, archive_pop, sample_parameter, success_parameter, success_fit_dif, fp, nfe, nfe_local, "Cur-to-grbest", prob);
-		//DEStrategy(pop, pop_r2, archive_pop, sample_parameter, success_parameter, success_fit_dif, fp, nfe, nfe_local, "Rand2", prob);
 
 		for (size_t i = 0; i < NP_; ++i)
 		{
@@ -496,13 +494,13 @@ Individual::GeneVec CC_mL_SHADE::CurtopBest_DonorVec(int target_idx, double p, d
 	return donor_vector;
 }
 
-Individual::GeneVec CC_mL_SHADE::CurtoBest_DonorVec(int target_idx, double p, double f, const Population& pop)
+Individual::GeneVec CC_mL_SHADE::CurtoBest_DonorVec(int target_idx, double f, const Population& pop)
 {
 	size_t Pop_Size = pop.size();
-	int best_idx_max = round(Pop_Size * p);
-	if (best_idx_max < 2) best_idx_max = 2;
+	//int best_idx_max = 0;
+	//if (best_idx_max < 2) best_idx_max = 2;
 
-	int x_best = alg_math::randInt(0, best_idx_max - 1),
+	int x_best = 0,
 		x_r1 = alg_math::randInt(0, (int)(Pop_Size - 1)),
 		x_r2 = alg_math::randInt(0, (int)(Pop_Size - 1));
 	while (x_r1 == target_idx || x_r2 == target_idx || x_r1 == x_r2)
