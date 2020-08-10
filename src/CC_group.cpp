@@ -57,7 +57,12 @@ void GroupsResult::outputToFile(const std::string& grouping_algName)const
 
 	for (size_t i = 0; i < sep_groups_.size(); ++i)
 	{
-		sepGroupsFile << sep_groups_[i][0] << std::endl;
+		sepGroupsFile << sep_groups_[i].size() << std::endl;
+		for (size_t j = 0; j < sep_groups_[i].size(); ++j)
+		{
+			sepGroupsFile << sep_groups_[i][j] << " ";
+		}
+		sepGroupsFile << std::endl;
 	}
 
 	// Output nonsep-groups
@@ -91,7 +96,7 @@ void GroupsResult::inputResult(const std::string& grouping_algName, const int pr
 	// Input rootfile data
 	std::string fileName = "GroupingResult_" + grouping_algName + "_" + IntToStr(prob_ID, 2) + ".txt";
 	std::fstream rootFile(filePath + fileName, std::ios::in);
-	
+
 	if (!rootFile)
 	{
 		std::cout << "Error msg : Can't load the file '" << grouping_algName << "'." << std::endl;
@@ -104,7 +109,7 @@ void GroupsResult::inputResult(const std::string& grouping_algName, const int pr
 		rootFile >> dummy >> dummy >> sep_size;
 		rootFile >> dummy >> dummy >> nonsep_size;
 	}
-	
+
 	// Input sep-groups file data
 	std::string sepGroupsFileName = "GroupingResult_" + grouping_name_ + "_" + IntToStr(problem_id_, 2) + "_sepGroups" + ".txt";
 	std::fstream sepGroupsFile(filePath + sepGroupsFileName, std::ios::in);
@@ -113,15 +118,20 @@ void GroupsResult::inputResult(const std::string& grouping_algName, const int pr
 	{
 		std::cout << "Error msg : Can't load the file '" << sepGroupsFileName << "'." << std::endl;
 	}
-	else if(sep_size > 0)
+	else if (sep_size > 0)
 	{
-		int tmp = 0;
+		size_t num = 0;
 		groupname = "separable";
 		for (size_t i = 0; i < sep_size; ++i)
 		{
-			sepGroupsFile >> tmp;
+			sepGroupsFile >> num;
+			std::vector<int> x_index(num, 0);
+			for (size_t j = 0; j < num; ++j)
+			{
+				sepGroupsFile >> x_index[j];
+			}
 
-			Group g(tmp);
+			Group g(x_index);
 			g.setname(groupname);
 
 			sep_groups_.push_back(g);
@@ -136,7 +146,7 @@ void GroupsResult::inputResult(const std::string& grouping_algName, const int pr
 	{
 		std::cout << "Error msg : Can't load the file '" << nonsepGroupsFileName << "'." << std::endl;
 	}
-	else if(nonsep_size > 0)
+	else if (nonsep_size > 0)
 	{
 		size_t num = 0;
 		groupname = "nonseparable";
@@ -148,7 +158,7 @@ void GroupsResult::inputResult(const std::string& grouping_algName, const int pr
 			{
 				nonsepGroupsFile >> x_index[j];
 			}
-			
+
 			Group g(x_index);
 			g.setname(groupname);
 

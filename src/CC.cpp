@@ -58,7 +58,9 @@ Individual CC_alg::Solve(const CProblem& prob)
 	unsigned long long int nFE_now = nFE_;
 	const unsigned long long int MAX_nFE = max_nFE_;
 
-	std::string MutationOperator = "Cur-to-pbest";
+	std::default_random_engine generator;
+	std::uniform_int_distribution<int> distribution(0, 2);
+	//std::string MutationOperator = "Cur-to-pbest";
 
 	// Create Benchmark function
 	Benchmarks* fp = generateFuncObj(prob.id(), prob.lower_bound(), prob.upper_bound(), prob.dim());
@@ -88,9 +90,8 @@ Individual CC_alg::Solve(const CProblem& prob)
 	++nFE_now;
 
 	
-	
 	// CC evaluation
-	constexpr size_t bestFitness_log_cycle = 1;
+	constexpr size_t log_cycle = 1;
 	size_t cycle_cnt = 0;
 	while (nFE_now < MAX_nFE)
 	{
@@ -98,7 +99,8 @@ Individual CC_alg::Solve(const CProblem& prob)
 
 		for (size_t i = 0; i < decomposers_.size(); ++i)
 		{
-			decomposers_[i].setMutationOperator(MutationOperator);
+
+			//decomposers_[i].setMutationOperator(MutationOperator);
 
 			// Optimize each SubComponents
 			context_vector_ = decomposers_[i].Optimize(optimizer_LearningPeriod_, prob, fp, context_vector_, nFE_now, decomposers_.size());
@@ -115,17 +117,24 @@ Individual CC_alg::Solve(const CProblem& prob)
 			{
 				log.store_errorvalue(context_vector_);
 			}
-			if (cycle_cnt % bestFitness_log_cycle == 0)
+			if (cycle_cnt % log_cycle == 0)
 			{
+				log.store_subcomponent(decomposers_[i].population(), i, nFE_now);
 				log.store_bestfitness(context_vector_, i, nFE_now);
 			}
-
 
 			//cout << "Group " << i << "  ,nFE = " << nFE_now << endl;			
 		}
 
-		//cout << "Cycle " << cycle_cnt << ", Best fitness = " << context_vector_.fitness() << endl;
+		cout << "Cycle " << cycle_cnt << ", Best fitness = " << context_vector_.fitness() << endl;
 	}
 	
+	// final pop
+	for (size_t i = 0; i < decomposers_.size(); ++i)
+	{
+		log.store_subcomponent(decomposers_[i].population(), i, nFE_now);
+	}
+
+
 	return context_vector_;
 }

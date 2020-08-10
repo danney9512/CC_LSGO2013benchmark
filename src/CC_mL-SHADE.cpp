@@ -120,6 +120,13 @@ Individual CC_mL_SHADE::Solve(const Individual& context_vec, const Group& group,
 	const double pbest = p_, ub = prob.upper_bound(), lb = prob.lower_bound(), scalemax = scalemax_;
 	std::default_random_engine generator;
 	
+	// Set multiple mutatiion operator
+	std::string mut_opt = "Cur-to-pbest";
+	enum Mutation_opt
+	{	Cur_to_pbest, 
+		Cur_to_grbest, 
+		Rand2
+	};
 
 	// Initialize and evaluate population in this stage
 	Population pop(NP_first), archive_pop, children(NP_init_);
@@ -196,7 +203,12 @@ Individual CC_mL_SHADE::Solve(const Individual& context_vec, const Group& group,
 
 			// DE Mutation
 			Individual::GeneVec donor_vector;
-			donor_vector = CurtopBest_DonorVec((int)i, pbest, Fi, pop, archive_pop);
+			if (mut_opt == "Cur-to-pbest") 
+				donor_vector = CurtopBest_DonorVec((int)i, pbest, Fi, pop, archive_pop);
+			else if (mut_opt == "Cur-to-grbest")
+				donor_vector = CurtogrBest_DonorVec((int)i, pbest, Fi, pop);
+			else if (mut_opt == "Rand2")
+				donor_vector = Rand2_DonorVec(Fi, pop);
 
 
 			// DE crossover
@@ -272,8 +284,12 @@ Individual CC_mL_SHADE::Solve(const Individual& context_vec, const Group& group,
 		}
 
 		// LPSR, Linear Population Size Reduction
-		NP_ = (size_t)round(((1.0 * (int)(Nmin - NP_init_) / (double)(Max_NFE / num_deps)) * (nfe_local + used_nfe)) + NP_init_);
-		A_ = (size_t)NP_ * rarc_;
+		if (group.name() == "separable")
+		{
+			NP_ = (size_t)round(((1.0 * (int)(Nmin - NP_init_) / (double)(Max_NFE / num_deps)) * (nfe_local + used_nfe)) + NP_init_);
+			A_ = (size_t)NP_ * rarc_;
+		}
+		if (NP_ < Nmin) NP_ = Nmin;
 
 		pop.sort();
 		pop.resize(NP_);

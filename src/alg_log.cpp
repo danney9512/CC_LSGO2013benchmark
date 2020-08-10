@@ -78,7 +78,7 @@ Log::Log(string fileName, int max_FFE, int dim, int optimum)
 	
 	errorvalue_stream_ = fstream(dirK + "/ErrorValue.csv", ios::out);
 
-	//population_stream_ = fstream(dirK + "/population.txt", ios::out);
+	population_stream_ = fstream(dirK + "/population.txt", ios::out);
 
 	//archive_stream_ = fstream(dirK + "/archive.txt", ios::out);
 	//parameter_stream_ = fstream(dirK + "/parameter.txt", ios::out);
@@ -155,6 +155,29 @@ void Log::store_subpop(Population* subpop, const int subpop_num)
 		for (size_t j = 0; j < cpop[i].gene().size(); ++j)
 		{
 			population_stream_ << setprecision(8) << cpop[i].gene()[j] << " ";
+		}
+		population_stream_ << endl;
+	}
+	population_stream_ << endl;
+}
+
+void Log::store_subcomponent(const std::vector<vector<double>>& subpop, const size_t group_index, const unsigned long long int nfe)
+{
+	// Output sub-population
+	size_t popSize = subpop.size();
+	size_t geneLength = subpop[0].size();
+
+	population_stream_ << "Sub-pop " << group_index << " ,";
+	population_stream_ << "nfe: " << nfe << ", Gene Length: " << geneLength << endl;
+
+	size_t num_output = size_t(popSize * 0.2);
+	if (num_output < 1) num_output = 4;
+	for (size_t i = 0; i < num_output; ++i)
+	{
+		population_stream_ << "gene = ";
+		for (size_t j = 0; j < subpop[i].size(); ++j)
+		{
+			population_stream_ << setprecision(8) << subpop[i][j] << " ";
 		}
 		population_stream_ << endl;
 	}

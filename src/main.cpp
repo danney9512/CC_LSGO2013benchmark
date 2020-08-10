@@ -165,7 +165,7 @@ int main()
 			START = clock();
 			// Running CCEA
 			omp_set_dynamic(0);			// Explicitly disable dynamic teams
-			omp_set_num_threads(5);		// Set num of thread
+			omp_set_num_threads(6);		// Set num of thread
 			#pragma omp parallel
 			{
 				#pragma omp for 

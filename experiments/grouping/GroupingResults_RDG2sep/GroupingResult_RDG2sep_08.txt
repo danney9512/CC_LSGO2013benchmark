@@ -1,0 +1,5 @@
+Grouping_Algorithm = RDG2sep
+Probem_ID = 8
+Number_FE_cost = 19405
+Sep-Group_Size = 4
+NonSep-Group_Size = 18

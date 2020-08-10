@@ -35,6 +35,7 @@ public:
 	
 	void store_bestfitness(const Individual& sol, const size_t group_index, const unsigned long long int nfe);
 	void store_errorvalue(const Individual& sol);
+	void store_subcomponent(const std::vector<vector<double>>& subpop, const size_t group_index, const unsigned long long int nfe);
 
 private:
 	static int numberOfk;
