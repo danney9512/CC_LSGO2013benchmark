@@ -390,7 +390,7 @@ Individual CC_mL_SHADE::Solve(const Individual& context_vec, const Group& group,
 
 		NP_op_[0] = (size_t)(max(0.1, min(0.9, IRV_cp / (IRV_cp + IRV_cg + IRV_r2))) * NP_);
 		NP_op_[1] = (size_t)(max(0.1, min(0.9, IRV_cg / (IRV_cp + IRV_cg + IRV_r2))) * NP_);
-		NP_op_[2] = (size_t)(max(0.1, min(0.9, IRV_r2 / (IRV_cp + IRV_cg + IRV_r2))) * NP_);
+		NP_op_[2] = NP_ - NP_op_[0] - NP_op_[1];
 
 		pop.sort();
 		pop.resize(NP_);
