@@ -65,6 +65,8 @@ public:
 		std::vector<Memory> memories_;
 	};
 
+	void DEStrategy(Population& pop, Population& archive_pop, std::vector<Memory>& sample_parameter, std::vector<Memory>& success_parameter, std::vector<double>& success_fit_dif, Benchmarks* fp, unsigned long long int& nfe, unsigned long long int& nfe_local, const string& mut_opt, const CProblem& prob);
+
 private:
 	double p_,
 		rarc_,
@@ -82,6 +84,8 @@ private:
 	size_t NP_init_, 
 		NP_,
 		A_;
+
+	std::vector<size_t> NP_op_;
 	
 	Individual::GeneVec CurtopBest_DonorVec(int target_idx, double p, double f, const Population& pop, const Population& archive);
 	Individual::GeneVec Rand2_DonorVec(double f, const Population& pop);

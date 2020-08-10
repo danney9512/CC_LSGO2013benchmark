@@ -14,6 +14,7 @@
 #include <random>
 #include <iostream>
 #include <climits>
+#include <algorithm>
 using namespace std;
 
 CC_mL_SHADE::CC_mL_SHADE(const size_t NP, const unsigned long long int maxFE)
@@ -35,6 +36,8 @@ CC_mL_SHADE::CC_mL_SHADE(const size_t NP, const unsigned long long int maxFE)
 	A_ = (size_t)(NP_ * rarc_);
 
 	memory_sys_ = MemorySystem(h_);
+
+	NP_op_ = std::vector<size_t>{ NP / 3,NP / 3,NP - (NP / 3) * 2 };
 }
 
 void CC_mL_SHADE::Setup(std::ifstream& ifile)
@@ -103,6 +106,110 @@ void CC_mL_SHADE::MemorySystem::pertub_memory()
 	if (k_ >= h_) k_ = 0;
 }
 
+double EuclideanDistance(const Individual& ind1, const Individual& ind2)
+{
+	double ED = 0;
+	for (int i = 0; i < ind1.gene().size(); i += 1)
+	{
+		ED += pow(ind1.gene()[i] - ind2.gene()[i], 2);
+	}
+	return sqrt(ED);
+}
+
+void CC_mL_SHADE::DEStrategy(Population& pop, Population& archive_pop, std::vector<Memory>& sample_parameter, std::vector<Memory>& success_parameter, std::vector<double>& success_fit_dif, Benchmarks* fp, unsigned long long int& nfe, unsigned long long int& nfe_local, const string& mut_opt, const CProblem& prob)
+{
+	const double pbest = p_, ub = prob.upper_bound(), lb = prob.lower_bound(), scalemax = scalemax_;
+	const size_t Gene_Len = prob.dim(), H = h_;
+	const unsigned long long int Max_NFE = max_nfe_;
+	std::default_random_engine generator;
+
+	// Set variables for terminal criteria
+	bool stop_flag = false;
+	size_t stop_idx = 0;
+
+	if (nfe >= Max_NFE)
+	{
+		return;
+	}
+
+	Population children(pop.size());
+
+	for (size_t i = 0; i < pop.size(); ++i)
+	{
+		// Generate CRi and Fi
+		int r = alg_math::randInt(0, (int)(H - 1));
+
+		double CRi;
+		if (memory_sys_[r].CR() == -1.0)
+			CRi = 0.0;
+		else
+		{
+			std::normal_distribution<double> randn(memory_sys_[r].CR(), 0.1);
+			CRi = std::min(1.0, std::max(0.0, randn(generator)));
+		}
+
+		std::cauchy_distribution<double> randc(memory_sys_[r].F(), 0.1);
+		double Fi = randc(generator);
+		while (Fi <= 0.0) Fi = randc(generator);
+		if (Fi > 1.0) Fi = 1.0;
+
+
+		sample_parameter.push_back(Memory(Fi, CRi));
+
+
+		// DE Mutation
+		Individual::GeneVec donor_vector;
+		if (mut_opt == "Cur-to-pbest")
+			donor_vector = CurtopBest_DonorVec((int)i, pbest, Fi, pop, archive_pop);
+		else if (mut_opt == "Cur-to-grbest")
+			donor_vector = CurtogrBest_DonorVec((int)i, pbest, Fi, pop);
+		else if (mut_opt == "Rand2")
+			donor_vector = Rand2_DonorVec(Fi, pop);
+
+
+		// DE crossover
+		int R = alg_math::randInt(0, (int)(Gene_Len - 1));
+		for (size_t k = 0; k < Gene_Len; ++k)
+		{
+			children[i].gene()[k] = (alg_math::randDouble(0.0, 1.0) <= CRi || k == R) ? donor_vector[k] : pop[i].gene()[k];
+
+			// Repair scheme
+			if (children[i].gene()[k] > ub) children[i].gene()[k] = (pop[i].gene()[k] + ub) / 2;
+			else if (children[i].gene()[k] < lb) children[i].gene()[k] = (pop[i].gene()[k] + lb) / 2;
+		}
+		// Evaluate the individual's fitness
+		children[i].fitness() = fp->compute(children[i].gene());
+
+		++nfe;
+		++nfe_local;
+
+		if (nfe >= Max_NFE)
+		{
+			stop_flag = true;
+			stop_idx = i;
+			break;
+		}
+	}
+
+
+	// DE Selection
+	for (size_t i = 0; i < NP_; ++i)
+	{
+		if (stop_flag && i > stop_idx) break;
+
+		if (children[i].fitness() <= pop[i].fitness())
+		{
+			if (children[i].fitness() < pop[i].fitness())
+			{
+				archive_pop.push_back(pop[i]);
+				success_parameter.push_back(Memory(sample_parameter[i].F(), sample_parameter[i].CR()));
+				success_fit_dif.push_back(std::fabs(children[i].fitness() - pop[i].fitness()));
+			}
+			pop[i] = children[i];
+		}
+	}
+	pop.sort();
+}
 
 Individual CC_mL_SHADE::Solve(const Individual& context_vec, const Group& group, std::vector<std::vector<double>>& population, const CProblem& prob, Benchmarks* fp, const int iteration, unsigned long long int& nfe, unsigned long long int used_nfe, const size_t num_deps)
 {
@@ -117,8 +224,8 @@ Individual CC_mL_SHADE::Solve(const Individual& context_vec, const Group& group,
 	const unsigned long long int Max_NFE = max_nfe_;
 	int cur_iteration = 0;
 
-	const double pbest = p_, ub = prob.upper_bound(), lb = prob.lower_bound(), scalemax = scalemax_;
-	std::default_random_engine generator;
+	//const double pbest = p_, ub = prob.upper_bound(), lb = prob.lower_bound(), scalemax = scalemax_;
+	//std::default_random_engine generator;
 	
 	// Set multiple mutatiion operator
 	std::string mut_opt = "Cur-to-pbest";
@@ -129,7 +236,7 @@ Individual CC_mL_SHADE::Solve(const Individual& context_vec, const Group& group,
 	};
 
 	// Initialize and evaluate population in this stage
-	Population pop(NP_first), archive_pop, children(NP_init_);
+	Population pop(NP_first), archive_pop;	//children(NP_init_);
 	for (size_t i = 0; i < NP_first; ++i)
 	{
 		pop[i] = context_vec;
@@ -154,15 +261,15 @@ Individual CC_mL_SHADE::Solve(const Individual& context_vec, const Group& group,
 		return pop[0];
 	}
 		
-
 	// Initialize memory sample system
 	std::vector<Memory> sample_parameter, success_parameter;
 	std::vector<double> success_fit_dif;
 	
 
 	// Set variables for terminal criteria
-	bool stop_flag = false;
-	size_t stop_idx = 0, no_success_cnt = 0, max_no_success_cnt = 0, perturb_cnt = 0, total_no_success = 0;
+	//bool stop_flag = false;
+	//size_t stop_idx = 0, 
+	size_t no_success_cnt = 0, max_no_success_cnt = 0, perturb_cnt = 0, total_no_success = 0;
 
 
 	while (cur_iteration < iteration && nfe < Max_NFE)
@@ -177,80 +284,37 @@ Individual CC_mL_SHADE::Solve(const Individual& context_vec, const Group& group,
 			success_fit_dif.clear();
 		}
 
-		// For each subcomponts in current popultaion
+		//Initialize each multi-operator population
+		Population pop_cp(NP_op_[0]), pop_cg(NP_op_[1]), pop_r2(NP_op_[2]);
+		pop.shuffle();
 		for (size_t i = 0; i < NP_; ++i)
 		{
-			// Generate CRi and Fi
-			int r = alg_math::randInt(0, (int)(H - 1));
-
-			double CRi;
-			if (memory_sys_[r].CR() == -1.0)	
-				CRi = 0.0;
+			if (i < NP_op_[0])
+				pop_cp[i] = pop[i];
+			else if (i < (NP_op_[0] + NP_op_[1]))
+				pop_cg[i - NP_op_[0]] = pop[i];
 			else
-			{
-				std::normal_distribution<double> randn(memory_sys_[r].CR(), 0.1);
-				CRi = std::min(1.0, std::max(0.0, randn(generator)));
-			}
-
-			std::cauchy_distribution<double> randc(memory_sys_[r].F(), 0.1);
-			double Fi = randc(generator);
-			while (Fi <= 0.0) Fi = randc(generator);
-			if (Fi > 1.0) Fi = 1.0;
-
-
-			sample_parameter.push_back(Memory(Fi, CRi));
-
-
-			// DE Mutation
-			Individual::GeneVec donor_vector;
-			if (mut_opt == "Cur-to-pbest") 
-				donor_vector = CurtopBest_DonorVec((int)i, pbest, Fi, pop, archive_pop);
-			else if (mut_opt == "Cur-to-grbest")
-				donor_vector = CurtogrBest_DonorVec((int)i, pbest, Fi, pop);
-			else if (mut_opt == "Rand2")
-				donor_vector = Rand2_DonorVec(Fi, pop);
-
-
-			// DE crossover
-			int R = alg_math::randInt(0, (int)(Gene_Len - 1));
-			for (size_t k = 0; k < Gene_Len; ++k)
-			{
-				children[i].gene()[k] = (alg_math::randDouble(0.0, 1.0) <= CRi || k == R) ? donor_vector[k] : pop[i].gene()[k];
-
-				// Repair scheme
-				if (children[i].gene()[k] > ub) children[i].gene()[k] = (pop[i].gene()[k] + ub) / 2;
-				else if (children[i].gene()[k] < lb) children[i].gene()[k] = (pop[i].gene()[k] + lb) / 2;
-			}
-			// Evaluate the individual's fitness
-			children[i].fitness() = fp->compute(children[i].gene());
-
-			++nfe;
-			++nfe_local;
-			
-			if (nfe >= Max_NFE)
-			{
-				stop_flag = true;
-				stop_idx = i;
-				break;
-			}
+				pop_r2[i - (NP_op_[0] + NP_op_[1])] = pop[i];
 		}
+		pop_cp.sort();
+		pop_cg.sort();
+		pop_r2.sort();
 
-		// DE Selection
+		// For each subcomponts in current popultaion	
+		DEStrategy(pop_cp, archive_pop, sample_parameter, success_parameter, success_fit_dif, fp, nfe, nfe_local, "Cur_to_pbest", prob);
+		DEStrategy(pop_cg, archive_pop, sample_parameter, success_parameter, success_fit_dif, fp, nfe, nfe_local, "Cur_to_grbest", prob);
+		DEStrategy(pop_r2, archive_pop, sample_parameter, success_parameter, success_fit_dif, fp, nfe, nfe_local, "Rand2", prob);
+
 		for (size_t i = 0; i < NP_; ++i)
 		{
-			if (stop_flag && i > stop_idx) break;
-
-			if (children[i].fitness() <= pop[i].fitness())
-			{
-				if (children[i].fitness() < pop[i].fitness())
-				{
-					archive_pop.push_back(pop[i]);
-					success_parameter.push_back(Memory(sample_parameter[i].F(), sample_parameter[i].CR()));
-					success_fit_dif.push_back(std::fabs(children[i].fitness() - pop[i].fitness()));
-				}
-				pop[i] = children[i];
-			}
+			if (i < NP_op_[0])
+				pop[i] = pop_cp[i];
+			else if (i < (NP_op_[0] + NP_op_[1]))
+				pop[i] = pop_cg[i - NP_op_[0]];
+			else
+				pop[i] = pop_r2[i - (NP_op_[0] + NP_op_[1])];
 		}
+		pop.sort();
 
 		// Resize archive
 		if (archive_pop.size() > A_)
@@ -283,6 +347,39 @@ Individual CC_mL_SHADE::Solve(const Individual& context_vec, const Group& group,
 			}
 		}
 
+		//calculate Diversity D_op
+		double D_cp = 0, D_cg = 0, D_r2 = 0;
+		for (size_t i = 1; i < pop_cp.size(); i += 1)
+		{
+			D_cp += EuclideanDistance(pop_cp[0], pop_cp[i]);
+		}
+		D_cp = D_cp / pop_cp.size();
+		for (size_t i = 1; i < pop_cg.size(); i += 1)
+		{
+			D_cg += EuclideanDistance(pop_cg[0], pop_cg[i]);
+		}
+		D_cg = D_cg / pop_cg.size();
+		for (size_t i = 1; i < pop_r2.size(); i += 1)
+		{
+			D_r2 += EuclideanDistance(pop_r2[0], pop_r2[i]);
+		}
+		D_r2 = D_r2 / pop_r2.size();
+
+		//calculate Diversity Rate
+		double DR_cp = D_cp / (D_cp + D_cg + D_r2);
+		double DR_cg = D_cg / (D_cp + D_cg + D_r2);
+		double DR_r2 = D_r2 / (D_cp + D_cg + D_r2);
+
+		//calculate solution quality
+		double QR_cp = pop_cp[0].fitness() / (pop_cp[0].fitness() + pop_cg[0].fitness() + pop_r2[0].fitness());
+		double QR_cg = pop_cg[0].fitness() / (pop_cp[0].fitness() + pop_cg[0].fitness() + pop_r2[0].fitness());
+		double QR_r2 = pop_r2[0].fitness() / (pop_cp[0].fitness() + pop_cg[0].fitness() + pop_r2[0].fitness());
+
+		//calcualte improvement rate
+		double IRV_cp = (1 - QR_cp) + DR_cp;
+		double IRV_cg = (1 - QR_cg) + DR_cg;
+		double IRV_r2 = (1 - QR_r2) + DR_r2;
+
 		// LPSR, Linear Population Size Reduction
 		if (group.name() == "separable")
 		{
@@ -290,6 +387,10 @@ Individual CC_mL_SHADE::Solve(const Individual& context_vec, const Group& group,
 			A_ = (size_t)NP_ * rarc_;
 		}
 		if (NP_ < Nmin) NP_ = Nmin;
+
+		NP_op_[0] = (size_t)(max(0.1, min(0.9, IRV_cp / (IRV_cp + IRV_cg + IRV_r2))) * NP_);
+		NP_op_[1] = (size_t)(max(0.1, min(0.9, IRV_cg / (IRV_cp + IRV_cg + IRV_r2))) * NP_);
+		NP_op_[2] = (size_t)(max(0.1, min(0.9, IRV_r2 / (IRV_cp + IRV_cg + IRV_r2))) * NP_);
 
 		pop.sort();
 		pop.resize(NP_);
