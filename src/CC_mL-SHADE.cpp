@@ -116,7 +116,7 @@ double EuclideanDistance(const Individual& ind1, const Individual& ind2)
 	return sqrt(ED);
 }
 
-void CC_mL_SHADE::DEStrategy(Population& pop, Population& archive_pop, std::vector<Memory>& sample_parameter, std::vector<Memory>& success_parameter, std::vector<double>& success_fit_dif, Benchmarks* fp, unsigned long long int& nfe, unsigned long long int& nfe_local, const string& mut_opt, const CProblem& prob)
+void CC_mL_SHADE::DEStrategy(const Population& bigpop, Population& pop, Population& archive_pop, std::vector<Memory>& sample_parameter, std::vector<Memory>& success_parameter, std::vector<double>& success_fit_dif, Benchmarks* fp, unsigned long long int& nfe, unsigned long long int& nfe_local, const string& mut_opt, const CProblem& prob)
 {
 	const double pbest = p_, ub = prob.upper_bound(), lb = prob.lower_bound(), scalemax = scalemax_;
 	const size_t Gene_Len = prob.dim(), H = h_;
@@ -160,12 +160,13 @@ void CC_mL_SHADE::DEStrategy(Population& pop, Population& archive_pop, std::vect
 		// DE Mutation
 		Individual::GeneVec donor_vector;
 		if (mut_opt == "Cur-to-pbest")
-			donor_vector = CurtopBest_DonorVec((int)i, pbest, Fi, pop, archive_pop);
+			donor_vector = CurtopBest_DonorVec((int)i, pbest, Fi, bigpop, archive_pop);
 		else if (mut_opt == "Cur-to-grbest")
-			donor_vector = CurtogrBest_DonorVec((int)i, pbest, Fi, pop);
+			donor_vector = CurtogrBest_DonorVec((int)i, pbest, Fi, bigpop);
 		else if (mut_opt == "Rand2")
-			donor_vector = Rand2_DonorVec(Fi, pop);
+			donor_vector = Rand2_DonorVec(Fi, bigpop);
 
+		//cout << donor_vector.size() << endl;
 
 		// DE crossover
 		int R = alg_math::randInt(0, (int)(Gene_Len - 1));
@@ -193,7 +194,7 @@ void CC_mL_SHADE::DEStrategy(Population& pop, Population& archive_pop, std::vect
 
 
 	// DE Selection
-	for (size_t i = 0; i < NP_; ++i)
+	for (size_t i = 0; i < pop.size(); ++i)
 	{
 		if (stop_flag && i > stop_idx) break;
 
@@ -301,9 +302,9 @@ Individual CC_mL_SHADE::Solve(const Individual& context_vec, const Group& group,
 		pop_r2.sort();
 
 		// For each subcomponts in current popultaion	
-		DEStrategy(pop_cp, archive_pop, sample_parameter, success_parameter, success_fit_dif, fp, nfe, nfe_local, "Cur_to_pbest", prob);
-		DEStrategy(pop_cg, archive_pop, sample_parameter, success_parameter, success_fit_dif, fp, nfe, nfe_local, "Cur_to_grbest", prob);
-		DEStrategy(pop_r2, archive_pop, sample_parameter, success_parameter, success_fit_dif, fp, nfe, nfe_local, "Rand2", prob);
+		DEStrategy(pop, pop_cp, archive_pop, sample_parameter, success_parameter, success_fit_dif, fp, nfe, nfe_local, "Cur-to-pbest", prob);
+		DEStrategy(pop, pop_cg, archive_pop, sample_parameter, success_parameter, success_fit_dif, fp, nfe, nfe_local, "Cur-to-grbest", prob);
+		DEStrategy(pop, pop_r2, archive_pop, sample_parameter, success_parameter, success_fit_dif, fp, nfe, nfe_local, "Rand2", prob);
 
 		for (size_t i = 0; i < NP_; ++i)
 		{
@@ -391,6 +392,7 @@ Individual CC_mL_SHADE::Solve(const Individual& context_vec, const Group& group,
 		NP_op_[0] = (size_t)(max(0.1, min(0.9, IRV_cp / (IRV_cp + IRV_cg + IRV_r2))) * NP_);
 		NP_op_[1] = (size_t)(max(0.1, min(0.9, IRV_cg / (IRV_cp + IRV_cg + IRV_r2))) * NP_);
 		NP_op_[2] = NP_ - NP_op_[0] - NP_op_[1];
+		if (NP_op_[2] < 0) NP_op_[2] = 0;
 
 		pop.sort();
 		pop.resize(NP_);
